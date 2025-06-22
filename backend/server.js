@@ -2,11 +2,12 @@
 
 // Use require('dotenv').config({ path: '../.env' }) to correctly locate the .env file
 // when running the script from the 'backend' directory.
-require('dotenv').config({path: '../.env'});
+require('dotenv').config({ path: '../.env' });
 
 const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
+
 // const path = path;
 const cors = require('cors');
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require('@google/generative-ai');
@@ -36,52 +37,43 @@ function fileToGenerativePart(filePath, mimeType) {
 }
 
 // --- Prompt Templates ---
-// *** ENHANCEMENT: Added a more explicit instruction to ONLY return JSON. ***
-const basePromptInstruction = `
-Analyze the following image. Extract the requested information and format it *exclusively* as a clean JSON object.
-Do not add any introductory text, closing remarks, or markdown formatting like \`\`\`json.
-Your entire response should be only the JSON object itself.
-Based on the image content, provide the output in the following structure:
-`;
 
 const promptTemplates = {
-  TrueFalse: `${basePromptInstruction}
-[
-  {
-    "ObjectType": "TrueFalse",
-    "ObjectJson": {
-      "Question": "The full text of the true/false statement.",
-      "IsCorrect": true
-    }
-  }
-]`,
+  imageSlider: `
+The uploaded image is a crop from a book page.  It is required to represent it as an interactive <”Category”: “Illustrative Object”> of type <”typeName”: “Image Slider”> that <”description”: “Displays a series of images/slides in a rotating or sliding manner”>.  Hence, would you please represent it in the following Json format, so that our system can convert it into an interactive object.  
 
-  MCQ: `${basePromptInstruction}
-[
-  {
-    "ObjectType": "MCQ",
-    "ObjectJson": {
-      "Question": "The full text of the question.",
-      "Answers": [
-        { "OptionText": "Text for option A.", "IsCorrect": true, "Feedback": "Explanation for why this is correct." },
-        { "OptionText": "Text for option B.", "IsCorrect": false, "Feedback": "Explanation for why this is incorrect." }
-      ]
-    }
-  }
-]`,
-  // Add other templates here following the same robust pattern...
-  FillBlank: `${basePromptInstruction}
-[
-  {
-    "ObjectType": "FillBlank",
-    "ObjectJson": {
-      "Question": "Text with [BLANK] placeholders.",
-      "Answers": [
-        { "BlankIndex": 1, "CorrectAnswer": "text" }
-      ]
-    }
-  }
-]`,
+Very important Notes:
+
+Note1: Please give each object an appropriate expressive name in the field “ObjectName”, 
+
+Note2: All the Json fields must be in the same language of the book,
+
+Note3: fill ALL the given fields of the Json (do not use null/empty), 
+
+{“Json Object”: 
+“ObjectType” : <”typeName”: “Image Slider”>
+“ObjectName”: “text”,
+“AbstractParameter”: 
+{“_Title_”:”text”, "Slides 2":[{{“Photo”: { “_Picture_”: "image", “_NormalizedCoordinates_”: “(x = X, y=Y, h=H, w=W)”}},"_AltText_":"text","_HoverText_":"text "}]}
+}
+
+Very specific notes: 
+
+1) Each image and its description together with all other related fields compose a separate slide 
+2) You need to split the uploaded picture into images each represents a slide, 
+3) Crop the image and save it, then provide its URL in the Json field “_Picture_”
+4) The field “_AltText_” represents a description of the image
+5) The field “_HoverText_”, represent a property/description/a clue.
+6) Try to make as reasonable number of slides as possible
+7) The “_NormalizedCoordinates_” are calculated as follows:
+
+X= (x + w/2) / image_width
+Y = (y + h/2) / image_height
+W = w / image_width
+H = h / image_height
+
+return x,y,w,h
+`,
 };
 
 
@@ -108,50 +100,57 @@ app.post('/analyze-image', upload.single('image'), validateInput, async (req, re
   const mimeType = req.file.mimetype;
 
   try {
-    // MODIFICATION: Switched to 'gemini-1.5-flash-latest'.
-    // This is a fast, multimodal, and cost-effective model that is part of Google's free tier.
-    // It's a great modern alternative to 'gemini-pro-vision'.
+    // Use Gemini multimodal model
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     const prompt = promptTemplates[promptType];
     const imagePart = fileToGenerativePart(imageFilePath, mimeType);
 
-    // *** FIX: Added safety settings to reduce chances of content being blocked ***
     const generationConfig = {
-      temperature: 0.2, // Lower temperature for more predictable, structured output
+      temperature: 0.2,
       topK: 1,
       topP: 1,
       maxOutputTokens: 2048,
     };
+
     const safetySettings = [
-        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+      { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+      { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+      { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+      { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
     ];
 
     const result = await model.generateContent({
-        contents: [{ role: "user", parts: [imagePart, {text: prompt}] }],
-        generationConfig,
-        safetySettings
+      contents: [{ role: "user", parts: [imagePart, { text: prompt }] }],
+      generationConfig,
+      safetySettings
     });
 
     const response = result.response;
-    // The 'text()' method may not exist on all response types, check for candidates first.
     if (!response.candidates || !response.candidates[0].content.parts[0].text) {
-        console.error('Unexpected Gemini response structure:', JSON.stringify(response, null, 2));
-        return res.status(500).json({ error: 'Could not extract text from AI response.' });
+      console.error('Unexpected Gemini response structure:', JSON.stringify(response, null, 2));
+      return res.status(500).json({ error: 'Could not extract text from AI response.' });
     }
+
     const rawText = response.candidates[0].content.parts[0].text;
 
-    // *** CRITICAL FIX: Clean and parse the JSON response from Gemini ***
+    // Clean and parse the JSON response from Gemini
     let jsonResponse;
     try {
-      // Clean the response to remove markdown fences if they exist
-      const cleanedText = rawText.replace(/```json\n?/, '').replace(/```$/, '').trim();
-      jsonResponse = JSON.parse(cleanedText);
+      // Try to extract the actual JSON block between ```json and ```
+      const jsonMatch = rawText.match(/```json\s*([\s\S]*?)```/i);
+
+      if (!jsonMatch) {
+        throw new Error("No valid ```json block found in the response.");
+      }
+
+      const cleanedText = jsonMatch[1].trim();
+
+      // Optionally fix field names if necessary
+      const correctedText = cleanedText.replace(/"Slides"\s*:/, '"Slides 2":');
+
+      jsonResponse = JSON.parse(correctedText);
     } catch (parseError) {
       console.error('Failed to parse Gemini response as JSON.', parseError);
-      // Return the raw text for debugging purposes if parsing fails
       return res.status(500).json({
         error: 'The AI response was not valid JSON.',
         rawResponse: rawText
@@ -164,13 +163,14 @@ app.post('/analyze-image', upload.single('image'), validateInput, async (req, re
     console.error('Gemini API Error:', error);
     res.status(500).json({ error: 'An error occurred while processing the image with the Gemini API.' });
   } finally {
-    // *** ENHANCEMENT: Added error handling for file cleanup ***
+    // Delete uploaded file after processing
     fs.unlink(imageFilePath, (err) => {
       if (err) {
         console.error(`Failed to delete temporary file: ${imageFilePath}`, err);
       }
     });
   }
+
 });
 
 
@@ -201,3 +201,33 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+app.post('/crop-slider', express.json(), async (req, res) => {
+  const { imagePath, jsonData } = req.body;
+
+  if (!imagePath || !jsonData) {
+    return res.status(400).json({ error: 'imagePath and jsonData are required' });
+  }
+
+  try {
+    const fullImagePath = path.join(__dirname, imagePath);
+    const image = sharp(fullImagePath);
+    const metadata = await image.metadata();
+
+    const slides = jsonData["Json Object"]?.AbstractParameter?.["Slides 2"];
+    if (!Array.isArray(slides)) {
+      return res.status(400).json({ error: 'Invalid Image Slider JSON format' });
+    }
+
+    await cropAndSaveSlides(fullImagePath, slides, path.basename(imagePath), metadata.width, metadata.height);
+
+    res.status(200).json({
+      message: 'Slides cropped successfully.',
+      result: jsonData
+    });
+  } catch (error) {
+    console.error('Cropping error:', error);
+    res.status(500).json({ error: 'An error occurred while cropping images.' });
+  }
+});
+
