@@ -1,6 +1,5 @@
-
 const promptTemplates = {
-"Image Slider": `The uploaded image is a visual layout from an educational book. It includes a labeled diagram or table showing types of scientific concepts or classifications (such as types of compounds, forces, cells, etc.).
+	"Image Slider": `The uploaded image is a visual layout from an educational book. It includes a labeled diagram or table showing types of scientific concepts or classifications (such as types of compounds, forces, cells, etc.).
 Each section typically contains:
 
 A visual representation (photo or icon) of a concept,
@@ -71,8 +70,7 @@ Please return JSON without embedding base64 image data. Instead, use external im
 
 `,
 
-
-"Hotspot Image": `
+	"Hotspot Image": `
 The uploaded image is a crop from a book page.  It is of type <”Hotspot Image”> that is a <”Category”> <”illustration”> that <”Descriptio”> “plots one or more spots on an image, and designates a piece of content/explanation to each spot”.  It is required to represent it as an interactive object.  Would you please represent it in the following Json format, so that our system can convert it into an interactive object?  
 {"Json Object": {
     "ObjectType": "<”Hotspot Image”>",
@@ -92,16 +90,15 @@ hotspot text is a description or info about this position
 
 Object specific notes:
 1)	The “_Coordinates_” are calculated as follows:
-X= x/ImageW 
-Y = y/ImageH 
+X= (x/ImageW) * 100
+Y = (y/ImageH) * 100
 return X, Y
 Where:
 ImageH = Height of the uploaded image
 ImageW = Width of the uploaded image
 `,
 
-
-"Image Blinder": `The uploaded image is a visual representation from an educational book or resource. It contains hidden parts (blurred, covered, or sequential elements) that reveal stages of a process or layers of information.
+	"Image Blinder": `The uploaded image is a visual representation from an educational book or resource. It contains hidden parts (blurred, covered, or sequential elements) that reveal stages of a process or layers of information.
 
 Your task is to extract and convert this image into an <”Category”: “Illustrative Object”> of type <”typeName”: “Image Blinder”>, where each stage or part of the image is revealed sequentially. The goal is to help learners explore the image by uncovering one section at a time.
 
@@ -151,8 +148,6 @@ Fill with raw numeric values.
 8. Fill all fields; do not leave anything blank or null.
 9. The language of all textual fields must match the language of the uploaded image.
 `,
-
 };
-
 
 module.exports = promptTemplates;
