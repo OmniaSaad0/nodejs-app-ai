@@ -101,55 +101,59 @@ ImageW = Width of the uploaded image
 `,
 
 
-"Image Blinder": `The uploaded image is a visual representation from an educational book or resource. It contains hidden parts (blurred, covered, or sequential elements) that reveal stages of a process or layers of information.
+"Image Blinder": `The uploaded image contains an educational illustration with labeled sections or stages (such as molecules, elements, reaction components, steps in a process, etc.).
 
-Your task is to extract and convert this image into an <”Category”: “Illustrative Object”> of type <”typeName”: “Image Blinder”>, where each stage or part of the image is revealed sequentially. The goal is to help learners explore the image by uncovering one section at a time.
+Please extract each distinct section and return a JSON structure that matches the following requirements:
 
-Please return the result in the following JSON format:
+The output is an Illustrative Object of type “Image Blinder”.
+
+Treat every labeled component or stage in the image as a separate entry in a Slides 2 array.
+
+Crop each individual component or stage as its own image segment and provide its normalized coordinates in the form (x = X, y = Y, h = H, w = W), where X, Y, H, and W are relative to the full image width and height.
+
+Fill all text fields — do not leave any blank — using the language present in the image.
+
+Include all the required JSON keys as follows:
 
 {
   "Json Object": {
     "ObjectType": "Image Blinder",
     "ObjectName": "TEXT",
     "AbstractParameter": {
-      "_Title_": "TEXT",
+      "_Heading_": "TEXT",
       "Slides 2": [
         {
-          "RevealArea": {
-            "_Picture_": "CROPPED_IMAGE_URL",
-            "_NormalizedCoordinates_": "(x = X, y = Y, h = H, w = W)"
-          },
+          "_Picture_": "CROPPED_IMAGE_URL",
+          "_NormalizedCoordinates_": "(x = X, y = Y, h = H, w = W)",
           "_AltText_": "TEXT",
-          "_HoverText_": "TEXT"
+          "_HoverText_": "TEXT",
+          "_Label_": "TEXT",
+          "_Description_": "TEXT"
         }
+        // ... repeat for all detected sections
       ]
     }
   }
 }
 Instructions:
 
-Identify each hidden or sequential section that can be uncovered in the image — for example, steps in a process, concealed labels, or blocked parts of a diagram.
+Identify all visually distinct sections (e.g. each atom, molecule, step, labeled part).
 
-Treat each section as a separate stage in the Slides 2 array.
+Fill _AltText_ with a short description of the image section.
 
-Crop only the relevant section (image + its label/description) so it can be revealed individually.
+Fill _HoverText_ with the label or term that matches this section.
 
-Assign the category, title, or concept of the revealed part as the _HoverText_.
+Fill _Label_ with a concise title of the section.
 
-Write a meaningful _AltText_ that describes what this section shows.
+Fill _Description_ with a slightly more detailed description (e.g. what this part shows or its role in the process).
 
-Compute normalized crop coordinates as:
+Do not include empty or null fields — describe each part thoroughly.
 
-x = zero-indexed offset from left edge / imageWidth
-y = zero-indexed offset from top edge / imageHeight
-w = width / imageWidth
-h = height / imageHeight
+Maintain the language of the uploaded image for all text content.
 
-Return the raw values: x, y, w, h
-Fill with raw numeric values.
-7. Make sure you include every meaningful hidden part as a separate slide so that the number of slides matches the number of revealable sections.
-8. Fill all fields; do not leave anything blank or null.
-9. The language of all textual fields must match the language of the uploaded image.
+Please output the raw JSON only — do not add extra explanations or formatting outside the JSON
+Please return JSON without embedding base64 image data. Instead, use external image URLs or placeholders like "https://example.com/image.jpg".
+
 `,
 
 };
