@@ -99,7 +99,7 @@ async function cropImage(imagePath, normalizedCoords, outputPath) {
 	}
 }
 
-// processing for slider type 
+// processing for slider type
 async function processImageSlider(jsonResponse, originalImagePath) {
 	const processedSlides = [];
 	const slides = jsonResponse["Json Object"]?.AbstractParameter?.["Slides 2"] || [];
@@ -120,7 +120,7 @@ async function processImageSlider(jsonResponse, originalImagePath) {
 					...slide,
 					Photo: {
 						...photo,
-						_Picture_: `processed-images/${outputFileName}`,
+						_Picture_: `http://localhost:3001/processed-images/${outputFileName}`,
 						_ProcessedPath_: outputPath,
 					},
 				});
@@ -147,11 +147,9 @@ async function processImageSlider(jsonResponse, originalImagePath) {
 
 // ----------------------------------
 
-
-
 // --- Prompt Templates ---
 
-const promptTemplates = require("./promptTemp")
+const promptTemplates = require("./promptTemp");
 
 // --- Middleware for Input Validation ---
 function validateInput(req, res, next) {
@@ -172,10 +170,10 @@ function validateInput(req, res, next) {
 	next();
 }
 
-// generic endpoint 
+// generic endpoint
 app.post("/process-images", upload.single("file"), async (req, res) => {
 	const { type } = req.body; // e.g. "image-slider", "product-labels", etc.
-	console.log("the type is : ", type)
+	console.log("the type is : ", type);
 
 	if (!req.file) {
 		return res.status(400).json({ error: "File is required." });
@@ -228,7 +226,6 @@ app.post("/process-images", upload.single("file"), async (req, res) => {
 		console.log("------------------------Gemini Response----------------------------");
 		console.log(rawText);
 		console.log("----------------------------------------------------");
-
 
 		// let jsonResponse;
 		// try {
@@ -284,7 +281,6 @@ app.post("/process-images", upload.single("file"), async (req, res) => {
 		}, 500);
 	}
 });
-
 
 // -----------------------
 // --- Image Processing Endpoint ---
@@ -421,7 +417,6 @@ app.post("/process-images", upload.single("file"), async (req, res) => {
 // 			});
 // 		}, 500);
 
-
 // 	}
 // });
 
@@ -509,8 +504,6 @@ app.post("/analyze-image", upload.single("image"), validateInput, async (req, re
 				}
 			});
 		}, 500);
-
-
 	}
 });
 
@@ -530,7 +523,6 @@ app.get("/test-gemini", async (req, res) => {
 		res.status(500).json({ error: err.message || "Unknown Gemini error" });
 	}
 });
-
 
 // --- 404 and Server Start ---
 app.use((req, res) => {
