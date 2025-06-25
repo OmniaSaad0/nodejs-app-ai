@@ -31,15 +31,20 @@ function App() {
 			setError("Please select an image first");
 			return;
 		}
+		if (!type) {
+			setError("Please select a type");
+			return;
+		}
 
 		setIsProcessing(true);
 		setError("");
 
 		try {
 			const formData = new FormData();
-			formData.append("image", selectedImage);
+			formData.append("file", selectedImage);
+			formData.append("type", type);
 
-			const response = await fetch("http://localhost:3001/process-image-slider", {
+			const response = await fetch("http://localhost:3001/process-images", {
 				method: "POST",
 				body: formData,
 			});

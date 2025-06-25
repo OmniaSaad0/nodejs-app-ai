@@ -99,77 +99,59 @@ async function cropImage(imagePath, normalizedCoords, outputPath) {
 	}
 }
 
-// --- Prompt Templates ---
+// processing for slider type 
+async function processImageSlider(jsonResponse, originalImagePath) {
+	const processedSlides = [];
+	const slides = jsonResponse["Json Object"]?.AbstractParameter?.["Slides 2"] || [];
 
-const promptTemplates = {
-	imageSlider: `The uploaded image is a visual layout from an educational book. It includes a labeled diagram or table showing types of scientific concepts or classifications (such as types of compounds, forces, cells, etc.).
-Each section typically contains:
+	for (let i = 0; i < slides.length; i++) {
+		const slide = slides[i];
+		const photo = slide.Photo;
 
-A visual representation (photo or icon) of a concept,
+		if (photo?.["_NormalizedCoordinates_"]) {
+			const uniqueId = uuidv4();
+			const outputFileName = `slide_${uniqueId}.jpg`;
+			const outputPath = path.join(processedImagesDir, outputFileName);
 
-A label or title indicating the category or type,
+			const cropResult = await cropImage(originalImagePath, photo._NormalizedCoordinates_, outputPath);
 
-Sometimes a chemical formula, term, or sub-label below the image.
+			if (cropResult.success) {
+				processedSlides.push({
+					...slide,
+					Photo: {
+						...photo,
+						_Picture_: `processed-images/${outputFileName}`,
+						_ProcessedPath_: outputPath,
+					},
+				});
+			} else {
+				console.error(`Failed to crop slide ${i}:`, cropResult.error);
+				processedSlides.push(slide);
+			}
+		} else {
+			processedSlides.push(slide);
+		}
+	}
 
-Your task is to extract and convert this image into an <”Category”: “Illustrative Object”> of type <”typeName”: “Image Slider”> in the following JSON format:
-
-{
-  "Json Object": {
-    "ObjectType": "Image Slider",
-    "ObjectName": "TEXT",
-    "AbstractParameter": {
-      "_Title_": "TEXT",
-      "Slides 2": [
-        {
-          "Photo": {
-            "_Picture_": "CROPPED_IMAGE_URL",
-            "_NormalizedCoordinates_": "(x = X, y = Y, h = H, w = W)"
-          },
-          "_AltText_": "TEXT",
-          "_HoverText_": "TEXT"
-        }
-      ]
-    }
-  }
+	return {
+		...jsonResponse,
+		"Json Object": {
+			...jsonResponse["Json Object"],
+			AbstractParameter: {
+				...jsonResponse["Json Object"].AbstractParameter,
+				"Slides 2": processedSlides,
+			},
+		},
+	};
 }
 
+// ----------------------------------
 
-Instructions:
-Identify and extract each logical section (such as each compound type or labeled group). These sections are usually visually separated (e.g., columns or boxes).
 
-Treat each section as a separate slide:
 
-Crop only the relevant section (image + its labels).
+// --- Prompt Templates ---
 
-Assign the category/label/title as the _HoverText_.
-
-Write a meaningful description of the image contents in _AltText_, including any visible chemical name, object, or action.
-
-Use the full image dimensions to compute _NormalizedCoordinates_ for each cropped section:
-
-x = zero-indexed offset from left edge / imageWidth
-y = zero-indexed offset from top edge / imageHeight
-w = width / imageWidth
-h = height / imageHeight
-
-Return the raw values: x, y, w, h
-
-Ensure the number of slides matches the number of labeled sections or categories in the image.
-
-All fields must be filled:
-
-ObjectName: A descriptive title of the entire object (e.g., “Types of Compounds”).
-
-_Title_: The same or similar title.
-
-_AltText_: A description of the cropped image.
-
-_HoverText_: The category/label associated with that image.
-
-The output text (labels, names, descriptions, alt text, etc) must match the language used in the uploaded image.
-
-Do not leave any field empty or null.`,
-};
+const promptTemplates = require("./promptTemp")
 
 // --- Middleware for Input Validation ---
 function validateInput(req, res, next) {
@@ -190,20 +172,32 @@ function validateInput(req, res, next) {
 	next();
 }
 
-// --- Image Processing Endpoint ---
-app.post("/process-image-slider", upload.single("image"), async (req, res) => {
+// generic endpoint 
+app.post("/process-images", upload.single("file"), async (req, res) => {
+	const { type } = req.body; // e.g. "image-slider", "product-labels", etc.
+	console.log("the type is : ", type)
+
 	if (!req.file) {
-		return res.status(400).json({ error: "Image file is required." });
+		return res.status(400).json({ error: "File is required." });
+	}
+	if (!type) {
+		return res.status(400).json({ error: "Type is required." });
 	}
 
-	const imageFilePath = req.file.path;
+	const filePath = req.file.path;
 	const mimeType = req.file.mimetype;
 
 	try {
-		// Use Gemini multimodal model
 		const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-		const prompt = promptTemplates.imageSlider;
-		const imagePart = fileToGenerativePart(imageFilePath, mimeType);
+
+		// Dynamically get prompt template based on type
+		const prompt = promptTemplates[type];
+		// const prompt = promptTemplates.imageSlider
+		if (!prompt) {
+			return res.status(400).json({ error: `Unknown processing type: ${type}` });
+		}
+
+		const filePart = fileToGenerativePart(filePath, mimeType);
 
 		const generationConfig = {
 			temperature: 0.2,
@@ -220,20 +214,34 @@ app.post("/process-image-slider", upload.single("image"), async (req, res) => {
 		];
 
 		const result = await model.generateContent({
-			contents: [{ role: "user", parts: [imagePart, { text: prompt }] }],
+			contents: [{ role: "user", parts: [filePart, { text: prompt }] }],
 			generationConfig,
 			safetySettings,
 		});
 
-		const response = result.response;
-		if (!response.candidates || !response.candidates[0].content.parts[0].text) {
-			console.error("Unexpected Gemini response structure:", JSON.stringify(response, null, 2));
+		const rawText = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
+		if (!rawText) {
+			console.error("Unexpected Gemini response structure:", JSON.stringify(result.response, null, 2));
 			return res.status(500).json({ error: "Could not extract text from AI response." });
 		}
 
-		const rawText = response.candidates[0].content.parts[0].text;
+		console.log("------------------------Gemini Response----------------------------");
+		console.log(rawText);
+		console.log("----------------------------------------------------");
 
-		// Clean and parse the JSON response from Gemini
+
+		// let jsonResponse;
+		// try {
+		// 	const jsonMatch = rawText.match(/```json\s*([\s\S]*?)```/i);
+		// 	if (!jsonMatch) throw new Error("No valid ```json block found.");
+		// 	jsonResponse = JSON.parse(jsonMatch[1].trim());
+		// } catch (parseError) {
+		// 	console.error("Failed to parse Gemini response as JSON.", parseError);
+		// 	return res.status(500).json({
+		// 		error: "The AI response was not valid JSON.",
+		// 		rawResponse: rawText,
+		// 	});
+		// }
 		let jsonResponse;
 		try {
 			// Try to extract the actual JSON block between ```json and ```
@@ -257,64 +265,165 @@ app.post("/process-image-slider", upload.single("image"), async (req, res) => {
 			});
 		}
 
-		// Process the slides and crop images
-		const processedSlides = [];
-		const slides = jsonResponse["Json Object"].AbstractParameter["Slides 2"] || [];
-
-		for (let i = 0; i < slides.length; i++) {
-			const slide = slides[i];
-			const photo = slide.Photo;
-
-			if (photo && photo._NormalizedCoordinates_) {
-				const uniqueId = uuidv4();
-				const outputFileName = `slide_${uniqueId}.jpg`;
-				const outputPath = path.join(processedImagesDir, outputFileName);
-
-				const cropResult = await cropImage(imageFilePath, photo._NormalizedCoordinates_, outputPath);
-
-				if (cropResult.success) {
-					processedSlides.push({
-						...slide,
-						Photo: {
-							...photo,
-							_Picture_: `/processed-images/${outputFileName}`,
-							_ProcessedPath_: outputPath,
-						},
-					});
-				} else {
-					console.error(`Failed to crop slide ${i}:`, cropResult.error);
-					processedSlides.push(slide);
-				}
-			} else {
-				processedSlides.push(slide);
-			}
+		// Optional type-specific processing
+		let finalResponse = jsonResponse;
+		if (type === "Image Slider") {
+			finalResponse = await processImageSlider(jsonResponse, filePath);
 		}
-
-		// Update the response with processed slides
-		const finalResponse = {
-			...jsonResponse,
-			"Json Object": {
-				...jsonResponse["Json Object"],
-				AbstractParameter: {
-					...jsonResponse["Json Object"].AbstractParameter,
-					"Slides 2": processedSlides,
-				},
-			},
-		};
 
 		res.status(200).json({ result: finalResponse });
 	} catch (error) {
-		console.error("Error processing image slider:", error);
-		res.status(500).json({ error: "An error occurred while processing the image slider." });
+		console.error(`Error processing content of type '${req.body.type}':`, error);
+		res.status(500).json({ error: "An error occurred while processing the content." });
 	} finally {
-		// Delete uploaded file after processing
-		fs.unlink(imageFilePath, (err) => {
-			if (err) {
-				console.error(`Failed to delete temporary file: ${imageFilePath}`, err);
-			}
-		});
+		setTimeout(() => {
+			fs.unlink(filePath, (err) => {
+				if (err) console.error(`Failed to delete temporary file: ${filePath}`, err);
+				else console.log(`Deleted temporary file: ${filePath}`);
+			});
+		}, 500);
 	}
 });
+
+
+// -----------------------
+// --- Image Processing Endpoint ---
+// app.post("/process-image-slider", upload.single("image"), async (req, res) => {
+// 	if (!req.file) {
+// 		return res.status(400).json({ error: "Image file is required." });
+// 	}
+
+// 	const imageFilePath = req.file.path;
+// 	const mimeType = req.file.mimetype;
+
+// 	try {
+// 		// Use Gemini multimodal model
+// 		const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+// 		const prompt = promptTemplates.imageSlider;
+// 		const imagePart = fileToGenerativePart(imageFilePath, mimeType);
+
+// 		const generationConfig = {
+// 			temperature: 0.2,
+// 			topK: 1,
+// 			topP: 1,
+// 			maxOutputTokens: 2048,
+// 		};
+
+// 		const safetySettings = [
+// 			{ category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+// 			{ category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+// 			{ category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+// 			{ category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+// 		];
+
+// 		const result = await model.generateContent({
+// 			contents: [{ role: "user", parts: [imagePart, { text: prompt }] }],
+// 			generationConfig,
+// 			safetySettings,
+// 		});
+
+// 		const response = result.response;
+// 		if (!response.candidates || !response.candidates[0].content.parts[0].text) {
+// 			console.error("Unexpected Gemini response structure:", JSON.stringify(response, null, 2));
+// 			return res.status(500).json({ error: "Could not extract text from AI response." });
+// 		}
+
+// 		const rawText = response.candidates[0].content.parts[0].text;
+
+// 		// Clean and parse the JSON response from Gemini
+// 		let jsonResponse;
+// 		try {
+// 			// Try to extract the actual JSON block between ```json and ```
+// 			const jsonMatch = rawText.match(/```json\s*([\s\S]*?)```/i);
+
+// 			if (!jsonMatch) {
+// 				throw new Error("No valid ```json block found in the response.");
+// 			}
+
+// 			const cleanedText = jsonMatch[1].trim();
+
+// 			// Optionally fix field names if necessary
+// 			const correctedText = cleanedText.replace(/"Slides"\s*:/, '"Slides 2":');
+
+// 			jsonResponse = JSON.parse(correctedText);
+// 		} catch (parseError) {
+// 			console.error("Failed to parse Gemini response as JSON.", parseError);
+// 			return res.status(500).json({
+// 				error: "The AI response was not valid JSON.",
+// 				rawResponse: rawText,
+// 			});
+// 		}
+
+// 		// Process the slides and crop images
+// 		const processedSlides = [];
+// 		const slides = jsonResponse["Json Object"].AbstractParameter["Slides 2"] || [];
+
+// 		for (let i = 0; i < slides.length; i++) {
+// 			const slide = slides[i];
+// 			const photo = slide.Photo;
+
+// 			if (photo && photo._NormalizedCoordinates_) {
+// 				const uniqueId = uuidv4();
+// 				const outputFileName = `slide_${uniqueId}.jpg`;
+// 				const outputPath = path.join(processedImagesDir, outputFileName);
+
+// 				const cropResult = await cropImage(imageFilePath, photo._NormalizedCoordinates_, outputPath);
+
+// 				if (cropResult.success) {
+// 					processedSlides.push({
+// 						...slide,
+// 						Photo: {
+// 							...photo,
+// 							_Picture_: `processed-images/${outputFileName}`,
+// 							_ProcessedPath_: outputPath,
+// 						},
+// 					});
+// 				} else {
+// 					console.error(`Failed to crop slide ${i}:`, cropResult.error);
+// 					processedSlides.push(slide);
+// 				}
+// 			} else {
+// 				processedSlides.push(slide);
+// 			}
+// 		}
+
+// 		// Update the response with processed slides
+// 		const finalResponse = {
+// 			...jsonResponse,
+// 			"Json Object": {
+// 				...jsonResponse["Json Object"],
+// 				AbstractParameter: {
+// 					...jsonResponse["Json Object"].AbstractParameter,
+// 					"Slides 2": processedSlides,
+// 				},
+// 			},
+// 		};
+
+// 		res.status(200).json({ result: finalResponse });
+// 	} catch (error) {
+// 		console.error("Error processing image slider:", error);
+// 		res.status(500).json({ error: "An error occurred while processing the image slider." });
+// 	} finally {
+// 		// Delete uploaded file after processing
+
+// 		// fs.unlink(imageFilePath, (err) => {
+// 		// 	if (err) {
+// 		// 		console.error(`Failed to delete temporary file: ${imageFilePath}`, err);
+// 		// 	}
+// 		// });
+// 		setTimeout(() => {
+// 			fs.unlink(imageFilePath, (err) => {
+// 				if (err) {
+// 					console.error(`Failed to delete temporary file: ${imageFilePath}`, err);
+// 				} else {
+// 					console.log(`Deleted temporary file: ${imageFilePath}`);
+// 				}
+// 			});
+// 		}, 500);
+
+
+// 	}
+// });
 
 // --- Main API Endpoint (keeping for backward compatibility) ---
 app.post("/analyze-image", upload.single("image"), validateInput, async (req, res) => {
@@ -386,11 +495,22 @@ app.post("/analyze-image", upload.single("image"), validateInput, async (req, re
 		res.status(500).json({ error: "An error occurred while processing the image with the Gemini API." });
 	} finally {
 		// Delete uploaded file after processing
-		fs.unlink(imageFilePath, (err) => {
-			if (err) {
-				console.error(`Failed to delete temporary file: ${imageFilePath}`, err);
-			}
-		});
+		// fs.unlink(imageFilePath, (err) => {
+		// 	if (err) {
+		// 		console.error(`Failed to delete temporary file: ${imageFilePath}`, err);
+		// 	}
+		// });
+		setTimeout(() => {
+			fs.unlink(imageFilePath, (err) => {
+				if (err) {
+					console.error(`Failed to delete temporary file: ${imageFilePath}`, err);
+				} else {
+					console.log(`Deleted temporary file: ${imageFilePath}`);
+				}
+			});
+		}, 500);
+
+
 	}
 });
 
@@ -411,34 +531,6 @@ app.get("/test-gemini", async (req, res) => {
 	}
 });
 
-app.post("/crop-slider", express.json(), async (req, res) => {
-	const { imagePath, jsonData } = req.body;
-
-	if (!imagePath || !jsonData) {
-		return res.status(400).json({ error: "imagePath and jsonData are required" });
-	}
-
-	try {
-		const fullImagePath = path.join(__dirname, imagePath);
-		const image = sharp(fullImagePath);
-		const metadata = await image.metadata();
-
-		const slides = jsonData["Json Object"]?.AbstractParameter?.["Slides 2"];
-		if (!Array.isArray(slides)) {
-			return res.status(400).json({ error: "Invalid Image Slider JSON format" });
-		}
-
-		await cropAndSaveSlides(fullImagePath, slides, path.basename(imagePath), metadata.width, metadata.height);
-
-		res.status(200).json({
-			message: "Slides cropped successfully.",
-			result: jsonData,
-		});
-	} catch (error) {
-		console.error("Cropping error:", error);
-		res.status(500).json({ error: "An error occurred while cropping images." });
-	}
-});
 
 // --- 404 and Server Start ---
 app.use((req, res) => {
