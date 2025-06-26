@@ -4,6 +4,7 @@ import "./App.css";
 import ImageSlider from "./assets/Component/ImageSlider/ImageSlider";
 import HotspotImage from "./assets/Component/HotspotImage/HotspotImage";
 import ImageBlinder from "./assets/Component/ImageBlinder/ImageBlinder";
+import ImageJuxtaposition from "./assets/Component/ImageJuxtaposition/ImageJuxtaposition";
 
 function ResultPage() {
 	const [result, setResult] = useState(null);
@@ -50,6 +51,9 @@ function ResultPage() {
 					imageUrl={previewImage}
 				/>
 
+			)}
+			{type === "Image Juxtaposition" && (
+				<ImageJuxtaposition data={result} />
 			)}
 		</div>
 	);

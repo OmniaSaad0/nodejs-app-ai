@@ -49,10 +49,23 @@ function fileToGenerativePart(filePath, mimeType) {
 }
 
 // Helper function to parse normalized coordinates
-function parseNormalizedCoordinates(coordString) {
-	const match = coordString.match(/\(x\s*=\s*([\d.]+),\s*y\s*=\s*([\d.]+),\s*h\s*=\s*([\d.]+),\s*w\s*=\s*([\d.]+)\)/);
+function parseNormalizedCoordinates(coord) {
+	if (typeof coord === 'object' && coord !== null && 'x' in coord && 'y' in coord && 'h' in coord && 'w' in coord) {
+		return {
+			x: parseFloat(coord.x),
+			y: parseFloat(coord.y),
+			h: parseFloat(coord.h),
+			w: parseFloat(coord.w),
+		};
+	}
+	if (typeof coord !== 'string') {
+		console.error('Invalid _NormalizedCoordinates_ value (not a string or object):', coord);
+		throw new Error('Invalid coordinate format: not a string or object');
+	}
+	const match = coord.match(/\(x\s*=\s*([\d.]+),\s*y\s*=\s*([\d.]+),\s*h\s*=\s*([\d.]+),\s*w\s*=\s*([\d.]+)\)/);
 	if (!match) {
-		throw new Error("Invalid coordinate format");
+		console.error('Invalid _NormalizedCoordinates_ string format:', coord);
+		throw new Error('Invalid coordinate format: regex mismatch');
 	}
 	return {
 		x: parseFloat(match[1]),
@@ -151,26 +164,31 @@ async function processImageBlinder(jsonResponse, originalImagePath) {
 	const slides = jsonResponse["Json Object"]?.AbstractParameter?.["Slides 2"] || [];
 
 	for (let i = 0; i < slides.length; i++) {
-		const slide = slides[i];
-
-		if (slide?.["_NormalizedCoordinates_"]) {
+		const slide = { ...slides[i] };
+		const photo = slide.Photo || {};
+		const coords = photo._NormalizedCoordinates_;
+		if (coords && (typeof coords === 'string' || (typeof coords === 'object' && coords !== null))) {
 			const uniqueId = uuidv4();
 			const outputFileName = `blinder_${uniqueId}.jpg`;
 			const outputPath = path.join(processedImagesDir, outputFileName);
-
-			const cropResult = await cropImage(originalImagePath, slide._NormalizedCoordinates_, outputPath);
-
-			if (cropResult.success) {
-				processedSlides.push({
-					...slide,
-					_Picture_: `http://localhost:3001/processed-images/${outputFileName}`,
-					_ProcessedPath_: outputPath,
-				});
-			} else {
-				console.error(`Failed to crop blinder slide ${i}:`, cropResult.error);
+			try {
+				const cropResult = await cropImage(originalImagePath, coords, outputPath);
+				if (cropResult.success) {
+					processedSlides.push({
+						...slide,
+						_Picture_: `http://localhost:3001/processed-images/${outputFileName}`,
+						_ProcessedPath_: outputPath,
+					});
+				} else {
+					console.error(`Failed to crop blinder slide ${i}:`, cropResult.error);
+					processedSlides.push(slide);
+				}
+			} catch (err) {
+				console.error(`Error cropping blinder slide ${i}:`, err, '\nSlide:', slide);
 				processedSlides.push(slide);
 			}
 		} else {
+			console.error(`Missing or invalid _NormalizedCoordinates_ for blinder slide ${i}:`, slide);
 			processedSlides.push(slide);
 		}
 	}
@@ -184,6 +202,45 @@ async function processImageBlinder(jsonResponse, originalImagePath) {
 				"Slides 2": processedSlides,
 			},
 		},
+	};
+}
+
+// processing for image juxtaposition type
+async function processImageJuxtaposition(jsonResponse, originalImagePath) {
+	const processedSlides = [];
+	const slides = jsonResponse.slides || [];
+
+	for (let i = 0; i < slides.length; i++) {
+		const slide = { ...slides[i] };
+		const coords = slide._NormalizedCoordinates_;
+		if (coords && (typeof coords === 'string' || (typeof coords === 'object' && coords !== null))) {
+			const uniqueId = uuidv4();
+			const outputFileName = `juxtaposition_${uniqueId}.jpg`;
+			const outputPath = path.join(processedImagesDir, outputFileName);
+			try {
+				const cropResult = await cropImage(originalImagePath, coords, outputPath);
+				if (cropResult.success) {
+					processedSlides.push({
+						...slide,
+						Picture: `http://localhost:3001/processed-images/${outputFileName}`,
+						_ProcessedPath_: outputPath,
+					});
+				} else {
+					console.error(`Failed to crop juxtaposition slide ${i}:`, cropResult.error);
+					processedSlides.push(slide);
+				}
+			} catch (err) {
+				console.error(`Error cropping juxtaposition slide ${i}:`, err, '\nSlide:', slide);
+				processedSlides.push(slide);
+			}
+		} else {
+			console.error(`Missing or invalid _NormalizedCoordinates_ for juxtaposition slide ${i}:`, slide);
+			processedSlides.push(slide);
+		}
+	}
+	return {
+		...jsonResponse,
+		slides: processedSlides,
 	};
 }
 
@@ -306,10 +363,12 @@ app.post("/process-images", upload.single("file"), async (req, res) => {
 
 		// Optional type-specific processing
 		let finalResponse = jsonResponse;
-		if (type === "Image Slider" || type === "Image Blinder") {
+		if (type === "Image Slider") {
 			finalResponse = await processImageSlider(jsonResponse, filePath);
 		} else if (type === "Image Blinder") {
 			finalResponse = await processImageBlinder(jsonResponse, filePath);
+		} else if (type === "Image Juxtaposition") {
+			finalResponse = await processImageJuxtaposition(jsonResponse, filePath);
 		}
 
 		res.status(200).json({ result: finalResponse });
