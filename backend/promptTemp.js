@@ -152,6 +152,66 @@ Please output the raw JSON only — do not add extra explanations or formatting 
 Please return JSON without embedding base64 image data. Instead, use external image URLs or placeholders like "https://example.com/image.jpg".
 
 `,
+
+"Image Juxtaposition": `
+You are given an image that contains two or more distinct visual segments arranged side-by-side or top-to-bottom — commonly used in "Before and After" comparisons or multi-panel educational visuals.
+
+Your task is to analyze the image and return a structured JSON object with the following fields:
+
+"Heading": A descriptive title for the overall visual layout.
+
+"slides": An array of objects where each object represents one image segment and includes:
+
+"Picture": (Optional) a URL or description of the image segment
+
+"AltTextImage": Alt text for accessibility
+
+"HoverTextImage": Tooltip-style label
+
+"LabelImage": Visible or inferred label in the image (e.g., "Before", "After")
+
+"_NormalizedCoordinates_": A bounding box for the segment with:
+
+x: horizontal offset (from left) / total image width
+
+y: vertical offset (from top) / total image height
+
+w: width / total image width
+
+h: height / total image height
+
+Return the result as a clean JSON object in the format below:
+
+
+{
+  "Heading": "Before And After",
+  "slides": [
+    {
+      "Picture": "https://example.com/image1.jpg",
+      "AltTextImage": "Scene Before Event",
+      "HoverTextImage": "Before Event",
+      "LabelImage": "BEFORE",
+      "_NormalizedCoordinates_": "(x = X, y = Y, h = H, w = W)"
+    },
+    {
+      "Picture": "https://example.com/image2.jpg",
+      "AltTextImage": "Scene After Event",
+      "HoverTextImage": "After Event",
+      "LabelImage": "AFTER",
+      "_NormalizedCoordinates_": "(x = X, y = Y, h = H, w = W)"
+    }
+  ]
+}
+Do not include empty or null fields — describe each part thoroughly.
+
+use the language of the uploaded image for all text content.
+
+Please output the raw JSON only — do not add extra explanations or formatting outside the JSON
+Please return JSON without embedding base64 image data. Instead, use external image URLs or placeholders like "https://example.com/image.jpg".
+
+`,
+
+
 };
 
 module.exports = promptTemplates;

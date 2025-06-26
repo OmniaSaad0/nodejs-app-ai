@@ -5,22 +5,27 @@ import ImageSlider from "./assets/Component/ImageSlider/ImageSlider";
 import HotspotImage from "./assets/Component/HotspotImage/HotspotImage";
 import ImageBlinder from "./assets/Component/ImageBlinder/ImageBlinder";
 
-function ResultPage({ previewImage }) {
+function ResultPage() {
 	const [result, setResult] = useState(null);
 	const [type, setType] = useState("");
 	const [name, setName] = useState("");
+	const [previewImage, setPreviewImage] = useState("")
 
 	useEffect(() => {
 		const stored = sessionStorage.getItem("resultData");
+		const imgStr = sessionStorage.getItem("previewImage")
 		if (stored) {
 			const parsed = JSON.parse(stored);
 			setResult(parsed.result);
 			setType(parsed.type);
 			setName(parsed.name);
 		}
+		if(imgStr) {
+			setPreviewImage(atob(imgStr))
+		}
 	}, []);
 
-	console.log({result, previewImage});
+
 
 	if (!result) return <div className="results-section"><h3>لا توجد نتائج</h3></div>;
 
@@ -113,6 +118,7 @@ function App() {
 				"resultData",
 				JSON.stringify({ result: data.result, type, name })
 			);
+			sessionStorage.setItem("previewImage", btoa(previewImage))
 			const url = `/result/${encodeURIComponent(type)}/${resultId}`;
 			window.open(url, '_blank');
 		} catch (error) {
@@ -290,7 +296,7 @@ function App() {
 					</div>
 				}
 			/>
-			<Route path="/result/:type/:id" element={<ResultPage previewImage={previewImage} />} />
+			<Route path="/result/:type/:id" element={<ResultPage />} />
 		</Routes>
 	);
 }
