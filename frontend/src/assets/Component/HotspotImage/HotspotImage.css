@@ -1,0 +1,183 @@
+.hotspot-image-container {
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 20px;
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.hotspot-image-container h3 {
+	text-align: center;
+	color: #333;
+	margin-bottom: 20px;
+	font-size: 1.5rem;
+}
+
+.image-marker-wrapper {
+	position: relative;
+	display: inline-block;
+	max-width: 100%;
+	border-radius: 8px;
+	/* overflow: hidden; */
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.image-marker-wrapper img {
+	max-width: 100%;
+	height: auto;
+	display: block;
+}
+
+.custom-marker-point {
+	transition: all 0.3s ease;
+}
+
+.custom-marker-point:hover {
+	transform: translate(-50%, -50%) scale(1.2);
+}
+
+.marker-dot {
+	width: 20px;
+	height: 20px;
+	background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+	border: 3px solid #fff;
+	border-radius: 50%;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+	animation: pulse 2s infinite;
+}
+
+.marker-dot::before {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 8px;
+	height: 8px;
+	background: #fff;
+	border-radius: 50%;
+}
+
+@keyframes pulse {
+	0% {
+		box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+	}
+	70% {
+		box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+	}
+	100% {
+		box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+	}
+}
+
+.marker-tooltip {
+	position: absolute;
+	background: rgba(0, 0, 0, 0.9);
+	color: white;
+	padding: 12px 16px;
+	border-radius: 8px;
+	font-size: 14px;
+	max-width: 450px;
+	width: 450px;
+	z-index: 1000;
+	pointer-events: none;
+	animation: fadeIn 0.3s ease;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.marker-tooltip::after {
+	content: "";
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border: 8px solid transparent;
+	border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translate(-50%, -100%) scale(0.8);
+	}
+	to {
+		opacity: 1;
+		transform: translate(-50%, -100%) scale(1);
+	}
+}
+
+.tooltip-header {
+	font-weight: bold;
+	font-size: 16px;
+	margin-bottom: 8px;
+	color: #ff6b6b;
+}
+
+.tooltip-text {
+	line-height: 1.4;
+	margin-bottom: 6px;
+}
+
+.tooltip-text2 {
+	line-height: 1.4;
+	font-style: italic;
+	color: #ccc;
+}
+
+.image-alt-text {
+	margin-top: 20px;
+	padding: 15px;
+	background: #f8f9fa;
+	border-radius: 6px;
+	border-left: 4px solid #007bff;
+}
+
+.image-alt-text p {
+	margin: 0;
+	color: #666;
+	font-size: 14px;
+	line-height: 1.5;
+}
+
+.image-alt-text strong {
+	color: #333;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+	.hotspot-image-container {
+		padding: 15px;
+	}
+
+	.hotspot-image-container h3 {
+		font-size: 1.3rem;
+	}
+
+	.marker-dot {
+		width: 16px;
+		height: 16px;
+	}
+
+	.marker-tooltip {
+		max-width: 300px;
+		font-size: 13px;
+		padding: 10px 12px;
+	}
+
+	.tooltip-header {
+		font-size: 14px;
+	}
+}
+
+@media (max-width: 480px) {
+	.hotspot-image-container {
+		padding: 10px;
+	}
+
+	.marker-tooltip {
+		max-width: 250px;
+		font-size: 12px;
+		padding: 8px 10px;
+	}
+}

@@ -98,7 +98,7 @@ ImageH = Height of the uploaded image
 ImageW = Width of the uploaded image
 `,
 
-"Image Blinder": `The uploaded image is a visual representation from an educational book or resource. It contains hidden parts (blurred, covered, or sequential elements) that reveal stages of a process or layers of information.
+	"Image Blinder": `The uploaded image is a visual representation from an educational book or resource. It contains hidden parts (blurred, covered, or sequential elements) that reveal stages of a process or layers of information.
 
 Your task is to extract and convert this image into an <”Category”: “Illustrative Object”> of type <”typeName”: “Image Blinder”>, where each stage or part of the image is revealed sequentially. The goal is to help learners explore the image by uncovering one section at a time.
 
@@ -109,15 +109,17 @@ Please return the result in the following JSON format:
     "ObjectType": "Image Blinder",
     "ObjectName": "TEXT",
     "AbstractParameter": {
-      "_Heading_": "TEXT",
+      "_Title_": "TEXT",
       "Slides 2": [
         {
-          "_Picture_": "CROPPED_IMAGE_URL",
-          "_NormalizedCoordinates_": "(x = X, y = Y, h = H, w = W)",
-          "_AltText_": "TEXT",
-          "_HoverText_": "TEXT",
+          "Photo": {
+            "_Picture_": "CROPPED_IMAGE_URL",
+            "_NormalizedCoordinates_": "(x = X, y = Y, h = H, w = W)"
+          },
           "_Label_": "TEXT",
-          "_Description_": "TEXT"
+          "_Description_": "TEXT",
+          "_AltText_": "TEXT",
+          "_HoverText_": "TEXT"
         }
         // ... repeat for all detected sections
       ]

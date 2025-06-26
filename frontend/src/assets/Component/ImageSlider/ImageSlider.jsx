@@ -4,26 +4,46 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "./ImageSlider.css";
 
-const ImageSlider = ({ slides, title }) => {
+const ImageSlider = ({ slides, title, isBlinder = false }) => {
 	const [currentSlide, setCurrentSlide] = useState(0);
 
 	const settings = {
 		dots: true,
 		infinite: true,
-		speed: 500,
+		speed: isBlinder ? 1000 : 500,
 		slidesToShow: 1,
 		slidesToScroll: 1,
-		autoplay: false,
+		autoplay: isBlinder,
+		fade: isBlinder,
 		beforeChange: (oldIndex, newIndex) => setCurrentSlide(newIndex),
 		responsive: [
 			{
 				breakpoint: 768,
 				settings: {
-					arrows: false,
+					arrows: isBlinder ? false : true,
 					dots: true,
 				},
 			},
 		],
+		...(isBlinder && {
+			customPaging: (i) => (
+				<div
+					className="seekbar-dot"
+					style={{
+						width: "100%",
+						height: "4px",
+						backgroundColor: i <= currentSlide ? "#007bff" : "#e0e0e0",
+						borderRadius: "2px",
+						margin: "0 2px",
+						transition: "background-color 0.3s ease",
+						cursor: "pointer",
+						transform: "scaleX(1.65)",
+					}}
+				/>
+			),
+			nextArrow: null,
+			prevArrow: null,
+		}),
 	};
 
 	if (!slides || slides.length === 0) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import ImageSlider from "./assets/Component/ImageSlider/ImageSlider";
+import HotspotImage from "./assets/Component/HotspotImage/HotspotImage";
 
 function App() {
 	const [name, setName] = useState("Explanation");
@@ -191,13 +192,23 @@ function App() {
 					</button>
 				</div>
 
-				{processedData && (
+				{processedData &&
+					(processedData["Json Object"]?.["ObjectType"] === "Image Slider" ||
+						processedData["Json Object"]?.["ObjectType"] === "Image Blinder") && (
+						<div className="results-section">
+							<h3>Processed Results</h3>
+							<ImageSlider
+								slides={processedData["Json Object"].AbstractParameter["Slides 2"] || []}
+								title={processedData["Json Object"].AbstractParameter.Title || name}
+								isBlinder={processedData["Json Object"]?.["ObjectType"] === "Image Blinder"}
+							/>
+						</div>
+					)}
+
+				{processedData && processedData["Json Object"]?.["ObjectType"] === "Hotspot Image" && (
 					<div className="results-section">
 						<h3>Processed Results</h3>
-						<ImageSlider
-							slides={processedData["Json Object"].AbstractParameter["Slides 2"] || []}
-							title={processedData["Json Object"].AbstractParameter.Title || name}
-						/>
+						<HotspotImage data={processedData} imageUrl={previewImage} />
 					</div>
 				)}
 

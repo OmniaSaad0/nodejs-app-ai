@@ -264,7 +264,7 @@ app.post("/process-images", upload.single("file"), async (req, res) => {
 
 		// Optional type-specific processing
 		let finalResponse = jsonResponse;
-		if (type === "Image Slider") {
+		if (type === "Image Slider" || type === "Image Blinder") {
 			finalResponse = await processImageSlider(jsonResponse, filePath);
 		}
 
