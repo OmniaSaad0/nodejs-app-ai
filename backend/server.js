@@ -3,14 +3,14 @@
 // Use require('dotenv').config({ path: '../.env' }) to correctly locate the .env file
 // when running the script from the 'backend' directory.
 require("dotenv").config({ path: "../.env" });
-
+ 
 const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
 const { v4: uuidv4 } = require("uuid");
-
+ 
 // const path = path;
 const cors = require("cors");
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
@@ -126,6 +126,48 @@ async function processImageSlider(jsonResponse, originalImagePath) {
 				});
 			} else {
 				console.error(`Failed to crop slide ${i}:`, cropResult.error);
+				processedSlides.push(slide);
+			}
+		} else {
+			processedSlides.push(slide);
+		}
+	}
+
+	return {
+		...jsonResponse,
+		"Json Object": {
+			...jsonResponse["Json Object"],
+			AbstractParameter: {
+				...jsonResponse["Json Object"].AbstractParameter,
+				"Slides 2": processedSlides,
+			},
+		},
+	};
+}
+
+// processing for image blinder type
+async function processImageBlinder(jsonResponse, originalImagePath) {
+	const processedSlides = [];
+	const slides = jsonResponse["Json Object"]?.AbstractParameter?.["Slides 2"] || [];
+
+	for (let i = 0; i < slides.length; i++) {
+		const slide = slides[i];
+
+		if (slide?.["_NormalizedCoordinates_"]) {
+			const uniqueId = uuidv4();
+			const outputFileName = `blinder_${uniqueId}.jpg`;
+			const outputPath = path.join(processedImagesDir, outputFileName);
+
+			const cropResult = await cropImage(originalImagePath, slide._NormalizedCoordinates_, outputPath);
+
+			if (cropResult.success) {
+				processedSlides.push({
+					...slide,
+					_Picture_: `http://localhost:3001/processed-images/${outputFileName}`,
+					_ProcessedPath_: outputPath,
+				});
+			} else {
+				console.error(`Failed to crop blinder slide ${i}:`, cropResult.error);
 				processedSlides.push(slide);
 			}
 		} else {
@@ -266,6 +308,8 @@ app.post("/process-images", upload.single("file"), async (req, res) => {
 		let finalResponse = jsonResponse;
 		if (type === "Image Slider" || type === "Image Blinder") {
 			finalResponse = await processImageSlider(jsonResponse, filePath);
+		} else if (type === "Image Blinder") {
+			finalResponse = await processImageBlinder(jsonResponse, filePath);
 		}
 
 		res.status(200).json({ result: finalResponse });
