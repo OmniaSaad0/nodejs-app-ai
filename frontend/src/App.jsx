@@ -136,6 +136,9 @@ function App() {
 			sessionStorage.setItem("previewImage", btoa(previewImage))
 			const url = `/result/${encodeURIComponent(type)}/${resultId}`;
 			window.open(url, '_blank');
+
+			// Set the final JSON for display
+			setJsonResponseText(JSON.stringify(data.result, null, 2));
 		} catch (error) {
 			console.error("Error processing image:", error);
 			setError(`Error processing image: ${error.message}`);
@@ -143,56 +146,6 @@ function App() {
 			setIsProcessing(false);
 		}
 	};
-
-	useEffect(() => {
-		if (type && name && selectedImage) {
-			let jsonOutput;
-
-			if (type === "Image Blinder") {
-				jsonOutput = {
-					"Json Object": {
-						ObjectType: type,
-						ObjectName: name,
-						AbstractParameter: {
-							_Heading_: name,
-							"Slides 2": [
-								{
-									_Picture_: selectedImage.name || "image.png",
-									_NormalizedCoordinates: "(x = 0.0, y = 0.0, h = 1.0, w = 1.0)",
-									_AltText_: "نص بديل للصورة",
-									_HoverText_: "نص يظهر عند تمرير المؤشر",
-									_Label_: "التسمية",
-									_Description_: "وصف مفصل للصورة"
-								},
-							],
-						},
-					},
-				};
-			} else {
-				jsonOutput = {
-					"Json Object": {
-						ObjectType: type,
-						ObjectName: name,
-						AbstractParameter: {
-							Title: name,
-							"Slides 2": [
-								{
-									Photo: {
-										_Picture_: selectedImage.name || "image.png",
-										_NormalizedCoordinates: "(x = 0.0, y = 0.0, h = 1.0, w = 1.0)",
-									},
-									_AltText_: "نص بديل للصورة",
-									_HoverText_: "نص يظهر عند تمرير المؤشر",
-								},
-							],
-						},
-					},
-				};
-			}
-
-			setJsonResponseText(JSON.stringify(jsonOutput, null, 2));
-		}
-	}, [type, name, selectedImage]);
 
 	return (
 		<Routes>
@@ -279,8 +232,8 @@ function App() {
 
 							{previewImage && (
 								<div className="image-preview">
-									<h3>معاينة الصورة:</h3>
-									<img src={previewImage} alt="معاينة" />
+									<h3>Preview Image</h3>
+									<img src={previewImage} alt="Preview" />
 								</div>
 							)}
 
@@ -296,18 +249,12 @@ function App() {
 								</button>
 							</div>
 
-							<div className="gpt-section">
-								<div className="json-response-control">
-									<label htmlFor="jsonResponse">Json Response</label>
-									<textarea
-										id="jsonResponse"
-										value={jsonResponseText}
-										onChange={(e) => setJsonResponseText(e.target.value)}
-										placeholder="Json Response"
-										readOnly
-									/>
+							{jsonResponseText && (
+								<div className="json-preview-block">
+									<label>Final JSON</label>
+									<pre className="json-block"><code>{jsonResponseText}</code></pre>
 								</div>
-							</div>
+							)}
 						</main>
 					</div>
 				}
