@@ -55,7 +55,7 @@ Ensure the number of slides matches the number of labeled sections or categories
 
 All fields must be filled:
 
-ObjectName: A descriptive title of the entire object (e.g., “Types of Compounds”).
+ObjectName: A descriptive title of the entire object (e.g., "Types of Compounds").
 
 _Title_: The same or similar title.
 
@@ -73,23 +73,23 @@ Please return JSON without embedding base64 image data. Instead, use external im
 	"Hotspot Image": `
 The uploaded image is a crop from a book page.  It is of type <”Hotspot Image”> that is a <”Category”> <”illustration”> that <”Descriptio”> “plots one or more spots on an image, and designates a piece of content/explanation to each spot”.  It is required to represent it as an interactive object.  Would you please represent it in the following Json format, so that our system can convert it into an interactive object?  
 {"Json Object": {
-    "ObjectType": "<”Hotspot Image”>",
+    "ObjectType": "<"Hotspot Image">",
     "ObjectName": "text",
      "AbstractParameter": 
 {"_Picture_":"image","_AltText_":"text","hotSpots":[{"_Xposition_":"Coordinate","_Yposition_":"Coordinate","_Header_":" text","_HotspotText_":"text","_HotspotText2_":"text"}]}
 }
 
 Important General Notes:
-Note1: Please give each object an appropriate expressive name in the field “ObjectName”, 
+Note1: Please give each object an appropriate expressive name in the field "ObjectName", 
 Note2: All Json fields are in the language of the book,
 Note3:  Fill ALL the given fields of the Json (Do not use null/empty), 
 Note4: in hotspots return important objects in the image
 Image specific notes:  
-1)	 “_AltText_” is a description of the image,
+1)	 "_AltText_" is a description of the image,
 hotspot text is a description or info about this position
 
 Object specific notes:
-1)	The “_Coordinates_” are calculated as follows:
+1)	The "_Coordinates_" are calculated as follows:
 X= (x/ImageW) * 100
 Y = (y/ImageH) * 100
 return X, Y
@@ -100,7 +100,7 @@ ImageW = Width of the uploaded image
 
 	"Image Blinder": `The uploaded image is a visual representation from an educational book or resource. It contains hidden parts (blurred, covered, or sequential elements) that reveal stages of a process or layers of information.
 
-Your task is to extract and convert this image into an <”Category”: “Illustrative Object”> of type <”typeName”: “Image Blinder”>, where each stage or part of the image is revealed sequentially. The goal is to help learners explore the image by uncovering one section at a time.
+Your task is to extract and convert this image into an <"Category": "Illustrative Object"> of type <"typeName": "Image Blinder">, where each stage or part of the image is revealed sequentially. The goal is to help learners explore the image by uncovering one section at a time.
 
 Please return the result in the following JSON format:
 
@@ -209,6 +209,48 @@ use the language of the uploaded image for all text content.
 Please output the raw JSON only — do not add extra explanations or formatting outside the JSON
 Please return JSON without embedding base64 image data. Instead, use external image URLs or placeholders like "https://example.com/image.jpg".
 
+`,
+
+"Chart": `
+For the uploaded image, this page image contains a few "Charts" would you please represent each of it in a separate JSON format like the following: Note, please suggest filling in those missing fields:
+{"ObjectType":"text", "ObjectName": "text",
+"_GraphMode_": "text", "Data":[ { "_DataElementName_": "text",
+"_Value_": "number", "_Color_": "hexa", "_FontColor_": "hexa" }
+]}
+
+use the language of the uploaded image for all text content.
+
+Please output the raw JSON only — do not add extra explanations or formatting outside the JSON
+`,
+
+"Accordion": `You are given an image containing educational content in any language. Your task is to analyze the visible content and return a structured JSON object with the following format:
+
+json
+Copy
+Edit
+{
+  "ObjectType": "text",
+  "ObjectName": "<main topic name if detectable, or understand it from the context>",
+  "ObjectJson": [
+    {
+      "_Title_": "<main heading or topic title>",
+      "_SubTitle_": "<subtitle or secondary heading, if available>",
+      "_SubsubTitle_": "<sub-subheading or section label, if available>",
+      "_Text_": "<the main explanation, description, or bullet-point content>"
+    }
+  ]
+}
+Guidelines:
+
+Use the language detected in the image — do not translate.
+
+If subtitles or sub-subtitles are missing, return them as empty strings ("").
+
+If multiple sections are found, return one object per section inside the ObjectJson array.
+
+Preserve bullet points, numbering, and formatting in _Text_ as much as possible.
+
+Output only valid raw JSON — no extra text or comments outside the JSON.
 `,
 
 

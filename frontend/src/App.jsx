@@ -5,6 +5,8 @@ import ImageSlider from "./assets/Component/ImageSlider/ImageSlider";
 import HotspotImage from "./assets/Component/HotspotImage/HotspotImage";
 import ImageBlinder from "./assets/Component/ImageBlinder/ImageBlinder";
 import ImageJuxtaposition from "./assets/Component/ImageJuxtaposition/ImageJuxtaposition";
+import Chart from "./assets/Component/Chart/Chart";
+import Accordion from "./assets/Component/Accordion/Accordion";
 
 function ResultPage() {
 	const [result, setResult] = useState(null);
@@ -54,6 +56,15 @@ function ResultPage() {
 			)}
 			{type === "Image Juxtaposition" && (
 				<ImageJuxtaposition data={result} />
+			)}
+			{type === "Chart" && (
+				<>
+					{console.log("Chart type detected, result:", result)}
+					<Chart data={result} />
+				</>
+			)}
+			{type === "Accordion" && (
+				<Accordion data={result} />
 			)}
 		</div>
 	);
@@ -218,7 +229,7 @@ function App() {
 										<option value="Image Slider">Image Slider</option>
 										<option value="Interactive Video">Interactive Video</option>
 										<option value="Phases">Phases</option>
-										<option value="Pie Chart">Pie Chart</option>
+										<option value="Chart">Chart</option>
 										<option value="Lifecycles">Lifecycles</option>
 										<option value="Numeric Table">Numeric Table</option>
 										<option value="Two Events">Two Events</option>
@@ -244,6 +255,7 @@ function App() {
 										<option value="3D Model">3D Model</option>
 										<option value="Simulation">Simulation</option>
 										<option value="Game">Game</option>
+										<option value="Accordion">Accordion</option>
 									</select>
 								</div>
 							</div>
@@ -280,7 +292,7 @@ function App() {
 
 							<div className="submit-section">
 								<button className="submit-button" onClick={processImage} disabled={isProcessing || !selectedImage}>
-									{isProcessing ? "Processing..." : "PROCESS IMAGE"}
+									{isProcessing ? "Creating..." : "Create Object"}
 								</button>
 							</div>
 

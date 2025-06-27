@@ -244,9 +244,6 @@ async function processImageJuxtaposition(jsonResponse, originalImagePath) {
 	};
 }
 
-// ----------------------------------
-
-// --- Prompt Templates ---
 
 const promptTemplates = require("./promptTemp");
 
@@ -269,9 +266,9 @@ function validateInput(req, res, next) {
 	next();
 }
 
-// generic endpoint
+// main endpoint
 app.post("/process-images", upload.single("file"), async (req, res) => {
-	const { type } = req.body; // e.g. "image-slider", "product-labels", etc.
+	const { type } = req.body; 
 	console.log("the type is : ", type);
 
 	if (!req.file) {
@@ -326,18 +323,6 @@ app.post("/process-images", upload.single("file"), async (req, res) => {
 		console.log(rawText);
 		console.log("----------------------------------------------------");
 
-		// let jsonResponse;
-		// try {
-		// 	const jsonMatch = rawText.match(/```json\s*([\s\S]*?)```/i);
-		// 	if (!jsonMatch) throw new Error("No valid ```json block found.");
-		// 	jsonResponse = JSON.parse(jsonMatch[1].trim());
-		// } catch (parseError) {
-		// 	console.error("Failed to parse Gemini response as JSON.", parseError);
-		// 	return res.status(500).json({
-		// 		error: "The AI response was not valid JSON.",
-		// 		rawResponse: rawText,
-		// 	});
-		// }
 		let jsonResponse;
 		try {
 			// Try to extract the actual JSON block between ```json and ```
@@ -369,6 +354,9 @@ app.post("/process-images", upload.single("file"), async (req, res) => {
 			finalResponse = await processImageBlinder(jsonResponse, filePath);
 		} else if (type === "Image Juxtaposition") {
 			finalResponse = await processImageJuxtaposition(jsonResponse, filePath);
+		} else if (type === "Chart" || type === "Accordion") {
+			// For Chart and Accordion, just return the parsed JSON as-is (no cropping needed)
+			finalResponse = jsonResponse;
 		}
 
 		res.status(200).json({ result: finalResponse });
@@ -385,145 +373,8 @@ app.post("/process-images", upload.single("file"), async (req, res) => {
 	}
 });
 
-// -----------------------
-// --- Image Processing Endpoint ---
-// app.post("/process-image-slider", upload.single("image"), async (req, res) => {
-// 	if (!req.file) {
-// 		return res.status(400).json({ error: "Image file is required." });
-// 	}
 
-// 	const imageFilePath = req.file.path;
-// 	const mimeType = req.file.mimetype;
-
-// 	try {
-// 		// Use Gemini multimodal model
-// 		const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-// 		const prompt = promptTemplates.imageSlider;
-// 		const imagePart = fileToGenerativePart(imageFilePath, mimeType);
-
-// 		const generationConfig = {
-// 			temperature: 0.2,
-// 			topK: 1,
-// 			topP: 1,
-// 			maxOutputTokens: 2048,
-// 		};
-
-// 		const safetySettings = [
-// 			{ category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-// 			{ category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-// 			{ category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-// 			{ category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-// 		];
-
-// 		const result = await model.generateContent({
-// 			contents: [{ role: "user", parts: [imagePart, { text: prompt }] }],
-// 			generationConfig,
-// 			safetySettings,
-// 		});
-
-// 		const response = result.response;
-// 		if (!response.candidates || !response.candidates[0].content.parts[0].text) {
-// 			console.error("Unexpected Gemini response structure:", JSON.stringify(response, null, 2));
-// 			return res.status(500).json({ error: "Could not extract text from AI response." });
-// 		}
-
-// 		const rawText = response.candidates[0].content.parts[0].text;
-
-// 		// Clean and parse the JSON response from Gemini
-// 		let jsonResponse;
-// 		try {
-// 			// Try to extract the actual JSON block between ```json and ```
-// 			const jsonMatch = rawText.match(/```json\s*([\s\S]*?)```/i);
-
-// 			if (!jsonMatch) {
-// 				throw new Error("No valid ```json block found in the response.");
-// 			}
-
-// 			const cleanedText = jsonMatch[1].trim();
-
-// 			// Optionally fix field names if necessary
-// 			const correctedText = cleanedText.replace(/"Slides"\s*:/, '"Slides 2":');
-
-// 			jsonResponse = JSON.parse(correctedText);
-// 		} catch (parseError) {
-// 			console.error("Failed to parse Gemini response as JSON.", parseError);
-// 			return res.status(500).json({
-// 				error: "The AI response was not valid JSON.",
-// 				rawResponse: rawText,
-// 			});
-// 		}
-
-// 		// Process the slides and crop images
-// 		const processedSlides = [];
-// 		const slides = jsonResponse["Json Object"].AbstractParameter["Slides 2"] || [];
-
-// 		for (let i = 0; i < slides.length; i++) {
-// 			const slide = slides[i];
-// 			const photo = slide.Photo;
-
-// 			if (photo && photo._NormalizedCoordinates_) {
-// 				const uniqueId = uuidv4();
-// 				const outputFileName = `slide_${uniqueId}.jpg`;
-// 				const outputPath = path.join(processedImagesDir, outputFileName);
-
-// 				const cropResult = await cropImage(imageFilePath, photo._NormalizedCoordinates_, outputPath);
-
-// 				if (cropResult.success) {
-// 					processedSlides.push({
-// 						...slide,
-// 						Photo: {
-// 							...photo,
-// 							_Picture_: `processed-images/${outputFileName}`,
-// 							_ProcessedPath_: outputPath,
-// 						},
-// 					});
-// 				} else {
-// 					console.error(`Failed to crop slide ${i}:`, cropResult.error);
-// 					processedSlides.push(slide);
-// 				}
-// 			} else {
-// 				processedSlides.push(slide);
-// 			}
-// 		}
-
-// 		// Update the response with processed slides
-// 		const finalResponse = {
-// 			...jsonResponse,
-// 			"Json Object": {
-// 				...jsonResponse["Json Object"],
-// 				AbstractParameter: {
-// 					...jsonResponse["Json Object"].AbstractParameter,
-// 					"Slides 2": processedSlides,
-// 				},
-// 			},
-// 		};
-
-// 		res.status(200).json({ result: finalResponse });
-// 	} catch (error) {
-// 		console.error("Error processing image slider:", error);
-// 		res.status(500).json({ error: "An error occurred while processing the image slider." });
-// 	} finally {
-// 		// Delete uploaded file after processing
-
-// 		// fs.unlink(imageFilePath, (err) => {
-// 		// 	if (err) {
-// 		// 		console.error(`Failed to delete temporary file: ${imageFilePath}`, err);
-// 		// 	}
-// 		// });
-// 		setTimeout(() => {
-// 			fs.unlink(imageFilePath, (err) => {
-// 				if (err) {
-// 					console.error(`Failed to delete temporary file: ${imageFilePath}`, err);
-// 				} else {
-// 					console.log(`Deleted temporary file: ${imageFilePath}`);
-// 				}
-// 			});
-// 		}, 500);
-
-// 	}
-// });
-
-// --- Main API Endpoint (keeping for backward compatibility) ---
+// --- test Gemini with images ---
 app.post("/analyze-image", upload.single("image"), validateInput, async (req, res) => {
 	const { promptType } = req.body;
 	const imageFilePath = req.file.path;
@@ -592,12 +443,7 @@ app.post("/analyze-image", upload.single("image"), validateInput, async (req, re
 		console.error("Gemini API Error:", error);
 		res.status(500).json({ error: "An error occurred while processing the image with the Gemini API." });
 	} finally {
-		// Delete uploaded file after processing
-		// fs.unlink(imageFilePath, (err) => {
-		// 	if (err) {
-		// 		console.error(`Failed to delete temporary file: ${imageFilePath}`, err);
-		// 	}
-		// });
+		
 		setTimeout(() => {
 			fs.unlink(imageFilePath, (err) => {
 				if (err) {
