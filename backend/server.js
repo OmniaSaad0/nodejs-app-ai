@@ -244,6 +244,23 @@ async function processImageJuxtaposition(jsonResponse, originalImagePath) {
 	};
 }
 
+// processing for Hotspot Image type
+async function processHotspotImage(jsonResponse, originalImagePath) {
+	// Save the uploaded image to processed-images with a unique name
+	const uniqueId = uuidv4();
+	const outputFileName = `hotspot_${uniqueId}.jpg`;
+	const outputPath = path.join(processedImagesDir, outputFileName);
+
+	// Copy the file (no cropping needed)
+	fs.copyFileSync(originalImagePath, outputPath);
+
+	// Update the _Picture_ field in the JSON (assume structure: { ... , _Picture_: ... })
+	let updatedJson = { ...jsonResponse };
+	if (updatedJson["Json Object"] && updatedJson["Json Object"].AbstractParameter) {
+		updatedJson["Json Object"].AbstractParameter._Picture_ = `http://localhost:3001/processed-images/${outputFileName}`;
+	}
+	return updatedJson;
+}
 
 const promptTemplates = require("./promptTemp");
 
@@ -354,11 +371,13 @@ app.post("/process-images", upload.single("file"), async (req, res) => {
 			finalResponse = await processImageBlinder(jsonResponse, filePath);
 		} else if (type === "Image Juxtaposition") {
 			finalResponse = await processImageJuxtaposition(jsonResponse, filePath);
+		} else if (type === "Hotspot Image") {
+			finalResponse = await processHotspotImage(jsonResponse, filePath);
 		} else if (type === "Chart" || type === "Accordion") {
 			// For Chart and Accordion, just return the parsed JSON as-is (no cropping needed)
 			finalResponse = jsonResponse;
 		}
-
+ 
 		res.status(200).json({ result: finalResponse });
 	} catch (error) {
 		console.error(`Error processing content of type '${req.body.type}':`, error);

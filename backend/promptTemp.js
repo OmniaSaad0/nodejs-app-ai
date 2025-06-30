@@ -71,7 +71,7 @@ Please return JSON without embedding base64 image data. Instead, use external im
 `,
 
 	"Hotspot Image": `
-The uploaded image is a crop from a book page.  It is of type <”Hotspot Image”> that is a <”Category”> <”illustration”> that <”Descriptio”> “plots one or more spots on an image, and designates a piece of content/explanation to each spot”.  It is required to represent it as an interactive object.  Would you please represent it in the following Json format, so that our system can convert it into an interactive object?  
+The uploaded image is a crop from a book page.  It is of type <”Hotspot Image”> that is a <”Category”> <”illustration”> that <”Descriptio”> “ recognize the important objects in the image, plots one or more spots on important objects in the image, recognize the object itself in the image and return it's positions, and designates a piece of content/explanation to each spot”.  It is required to represent it as an interactive object.  Would you please represent it in the following Json format, so that our system can convert it into an interactive object?  
 {"Json Object": {
     "ObjectType": "<"Hotspot Image">",
     "ObjectName": "text",
@@ -84,6 +84,7 @@ Note1: Please give each object an appropriate expressive name in the field "Obje
 Note2: All Json fields are in the language of the book,
 Note3:  Fill ALL the given fields of the Json (Do not use null/empty), 
 Note4: in hotspots return important objects in the image
+Note5: 
 Image specific notes:  
 1)	 "_AltText_" is a description of the image,
 hotspot text is a description or info about this position
@@ -212,22 +213,21 @@ Please return JSON without embedding base64 image data. Instead, use external im
 `,
 
 "Chart": `
-For the uploaded image, this page image contains a few "Charts" would you please represent each of it in a separate JSON format like the following: Note, please suggest filling in those missing fields:
+For the uploaded image, this page image contains a few "Charts" or tables would you please represent each of it in a separate JSON format like the following: Note, please suggest filling in those missing fields:
 {"ObjectType":"text", "ObjectName": "text",
 "_GraphMode_": "text", "Data":[ { "_DataElementName_": "text",
 "_Value_": "number", "_Color_": "hexa", "_FontColor_": "hexa" }
 ]}
 
 use the language of the uploaded image for all text content.
+in case of tables consider the values with time or date as the x-axis and the values as the y-axis.
 
 Please output the raw JSON only — do not add extra explanations or formatting outside the JSON
 `,
 
 "Accordion": `You are given an image containing educational content in any language. Your task is to analyze the visible content and return a structured JSON object with the following format:
 
-json
-Copy
-Edit
+
 {
   "ObjectType": "text",
   "ObjectName": "<main topic name if detectable, or understand it from the context>",
