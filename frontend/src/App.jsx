@@ -180,34 +180,7 @@ function App() {
 										<option value="Image Blinder">Image Blinder</option>
 										<option value="Image Juxtaposition">Image Juxtaposition</option>
 										<option value="Image Slider">Image Slider</option>
-										<option value="Interactive Video">Interactive Video</option>
-										<option value="Phases">Phases</option>
 										<option value="Chart">Chart</option>
-										<option value="Lifecycles">Lifecycles</option>
-										<option value="Numeric Table">Numeric Table</option>
-										<option value="Two Events">Two Events</option>
-										<option value="Two Step Experiment">Two Step Experiment</option>
-										<option value="Number Line">Number Line</option>
-										<option value="Ordering">Ordering</option>
-										<option value="Flashcards">Flashcards</option>
-										<option value="Matching">Matching</option>
-										<option value="Labeling">Labeling</option>
-										<option value="Sequencing">Sequencing</option>
-										<option value="Categorization">Categorization</option>
-										<option value="Cause and Effect">Cause and Effect</option>
-										<option value="Analogy">Analogy</option>
-										<option value="Multiple Choice">Multiple Choice</option>
-										<option value="True False">True False</option>
-										<option value="Short Answer">Short Answer</option>
-										<option value="Fill in the Blanks">Fill in the Blanks</option>
-										<option value="Drag and Drop">Drag and Drop</option>
-										<option value="Mark the Words">Mark the Words</option>
-										<option value="Point on Image">Point on Image</option>
-										<option value="Image Zoom">Image Zoom</option>
-										<option value="Virtual Tour">Virtual Tour</option>
-										<option value="3D Model">3D Model</option>
-										<option value="Simulation">Simulation</option>
-										<option value="Game">Game</option>
 										<option value="Accordion">Accordion</option>
 									</select>
 								</div>
