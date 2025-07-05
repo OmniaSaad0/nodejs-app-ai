@@ -61,7 +61,7 @@ _Title_: The same or similar title.
 
 _AltText_: A description of the cropped image.
 
-_HoverText_: The category/label associated with that image.
+_HoverText_: a description of the image.
 
 The output text (labels, names, descriptions, alt text, etc) must match the language used in the uploaded image.
 

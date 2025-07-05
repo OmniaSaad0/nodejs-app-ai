@@ -76,6 +76,40 @@
 	margin: 0;
 }
 
+.slide-hover-text {
+	max-height: 0;
+	overflow: hidden;
+	transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, margin 0.3s ease-in-out;
+	opacity: 0;
+	margin-top: 0;
+}
+
+.slide-hover-text.show {
+	max-height: 200px;
+	opacity: 1;
+	margin-top: 10px;
+}
+
+.slide-hover-text .slide-description {
+	margin: 0;
+	padding: 10px;
+	background: #e3f2fd;
+	border-left: 4px solid #007bff;
+	border-radius: 4px;
+	font-style: italic;
+}
+
+.slide-hover-text .slide-title {
+	margin: 0;
+	padding: 10px;
+	background: #fff3cd;
+	border-left: 4px solid #ffc107;
+	border-radius: 4px;
+	font-size: 18px;
+	font-weight: 600;
+	color: #856404;
+}
+
 .no-slides-message {
 	text-align: center;
 	padding: 60px 20px;

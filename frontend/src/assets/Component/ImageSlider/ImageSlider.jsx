@@ -6,6 +6,7 @@ import "./ImageSlider.css";
 
 const ImageSlider = ({ slides, title, isBlinder = false }) => {
 	const [currentSlide, setCurrentSlide] = useState(0);
+	const [hoveredSlide, setHoveredSlide] = useState(null);
 
 	const settings = {
 		dots: true,
@@ -69,7 +70,12 @@ const ImageSlider = ({ slides, title, isBlinder = false }) => {
 			<div className="slider-wrapper">
 				<Slider {...settings}>
 					{slides.map((slide, index) => (
-						<div key={index} className="slide-item">
+						<div 
+							key={index} 
+							className="slide-item"
+							onMouseEnter={() => setHoveredSlide(index)}
+							onMouseLeave={() => setHoveredSlide(null)}
+						>
 							<div className="slide-image-container">
 								<img
 									src={slide.Photo._Picture_}
@@ -83,8 +89,16 @@ const ImageSlider = ({ slides, title, isBlinder = false }) => {
 								/>
 							</div>
 							<div className="slide-content">
-								<h3 className="slide-title">{slide._AltText_}</h3>
-								<p className="slide-description">{slide._HoverText_}</p>
+								{slide._AltText_ && (
+									<div className={`slide-hover-text ${hoveredSlide === index ? 'show' : ''}`}>
+										<h3 className="slide-title">{slide._AltText_}</h3>
+									</div>
+								)}
+								{slide._HoverText_ && (
+									<div className={`slide-hover-text ${hoveredSlide === index ? 'show' : ''}`}>
+										<p className="slide-description">{slide._HoverText_}</p>
+									</div>
+								)}
 							</div>
 						</div>
 					))}

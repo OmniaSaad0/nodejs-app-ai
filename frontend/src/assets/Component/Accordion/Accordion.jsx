@@ -8,6 +8,17 @@ function parseAccordionData(data) {
   return obj;
 }
 
+// Helper function to convert \n to <br> tags
+function formatText(text) {
+  if (!text) return text;
+  return text.split('\n').map((line, index) => (
+    <React.Fragment key={index}>
+      {line}
+      {index < text.split('\n').length - 1 && <br />}
+    </React.Fragment>
+  ));
+}
+
 const Accordion = ({ data }) => {
   const obj = parseAccordionData(data);
   const items = obj.ObjectJson || [];
@@ -32,9 +43,9 @@ const Accordion = ({ data }) => {
             role="region"
             hidden={openIdx !== idx}
           >
-            {item._SubTitle_ && <div className="accordion-subtitle">{item._SubTitle_}</div>}
-            {item._SubsubTitle_ && <div className="accordion-subsubtitle">{item._SubsubTitle_}</div>}
-            {item._Text_ && <div className="accordion-text">{item._Text_}</div>}
+            {item._SubTitle_ && <div className="accordion-subtitle">{formatText(item._SubTitle_)}</div>}
+            {item._SubsubTitle_ && <div className="accordion-subsubtitle">{formatText(item._SubsubTitle_)}</div>}
+            {item._Text_ && <div className="accordion-text">{formatText(item._Text_)}</div>}
           </div>
         </div>
       ))}
