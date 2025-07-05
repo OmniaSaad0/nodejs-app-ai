@@ -44,7 +44,7 @@ function ResultPage() {
 			{type === "Image Slider" && (
 				<ImageSlider
 					slides={result["Json Object"].AbstractParameter["Slides 2"] || []}
-					title={result["Json Object"].AbstractParameter.Title || name}
+					title={result["Json Object"].AbstractParameter["_Title_"] || name}
 				/>
 			)}
 			{type === "Hotspot Image" && previewImage && (

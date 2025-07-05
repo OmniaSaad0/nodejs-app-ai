@@ -150,6 +150,7 @@ Do not include empty or null fields — describe each part thoroughly.
 use the language of the uploaded image for all text content.
 
 Please output the raw JSON only — do not add extra explanations or formatting outside the JSON
+return compelete json
 Please return JSON without embedding base64 image data. Instead, use external image URLs or placeholders like "https://example.com/image.jpg".
 
 `,

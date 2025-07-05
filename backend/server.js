@@ -401,7 +401,7 @@ app.post("/analyze-image", upload.single("image"), validateInput, async (req, re
 
 	try {
 		// Use Gemini multimodal model
-		const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+		const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 		const prompt = promptTemplates[promptType];
 		const imagePart = fileToGenerativePart(imageFilePath, mimeType);
 
@@ -483,7 +483,7 @@ app.get("/health", (req, res) => {
 app.get("/test-gemini", async (req, res) => {
 	try {
 		// MODIFICATION: Updated the test route to use a modern, free-tier model for consistency.
-		const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+		const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 		const result = await model.generateContent("Say Hello from Gemini.");
 		res.json({ reply: result.response.text() });
 	} catch (err) {
