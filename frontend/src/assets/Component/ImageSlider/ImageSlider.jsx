@@ -26,25 +26,7 @@ const ImageSlider = ({ slides, title, isBlinder = false }) => {
 				},
 			},
 		],
-		...(isBlinder && {
-			customPaging: (i) => (
-				<div
-					className="seekbar-dot"
-					style={{
-						width: "100%",
-						height: "4px",
-						backgroundColor: i <= currentSlide ? "#007bff" : "#e0e0e0",
-						borderRadius: "2px",
-						margin: "0 2px",
-						transition: "background-color 0.3s ease",
-						cursor: "pointer",
-						transform: "scaleX(1.65)",
-					}}
-				/>
-			),
-			nextArrow: null,
-			prevArrow: null,
-		}),
+		
 	};
 
 	if (!slides || slides.length === 0) {
@@ -78,7 +60,7 @@ const ImageSlider = ({ slides, title, isBlinder = false }) => {
 						>
 							<div className="slide-image-container">
 								<img
-									src={slide.Photo._Picture_}
+									src={slide._Picture_}
 									alt={slide._AltText_ || `Slide ${index + 1}`}
 									className="slide-image"
 									onError={(e) => {

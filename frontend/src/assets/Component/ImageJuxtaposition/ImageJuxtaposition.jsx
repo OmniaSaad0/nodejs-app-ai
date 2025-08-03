@@ -12,12 +12,14 @@ const ImageJuxtaposition = ({ data }) => {
 	const [leftError, setLeftError] = useState(false);
 	const [rightError, setRightError] = useState(false);
 
-	if (!data || !data.slides || data.slides.length < 2) {
+	data = data["Json Object"]["AbstractParameter"];
+
+	if (!data || !data["Slides 2"] || data["Slides 2"]?.length < 2) {
 		return <div className="juxtaposition-container">No valid data for juxtaposition.</div>;
 	}
 
-	const left = data.slides[0];
-	const right = data.slides[1];
+	const left = data["Slides 2"][0];
+	const right = data["Slides 2"][1];
 
 	const handleDrag = (e) => {
 		if (!dragging) return;
@@ -38,12 +40,12 @@ const ImageJuxtaposition = ({ data }) => {
 			onTouchMove={handleDrag}
 			onTouchEnd={() => setDragging(false)}
 		>
-			<div className="juxtaposition-heading">{data.Heading}</div>
+			<div className="juxtaposition-heading">{data._Title_}</div>
 			<div className="juxtaposition-image-wrapper">
 				{/* Left (Before) - always full width */}
 				<div className="juxtaposition-image left" style={{ zIndex: 1 }}>
 					<img
-						src={leftError ? PLACEHOLDER : left.Picture}
+						src={leftError ? PLACEHOLDER : left._Picture_}
 						alt={left.AltTextImage}
 						onError={() => setLeftError(true)}
 					/>
@@ -62,7 +64,7 @@ const ImageJuxtaposition = ({ data }) => {
 					}}
 				>
 					<img
-						src={rightError ? PLACEHOLDER : right.Picture}
+						src={rightError ? PLACEHOLDER : right._Picture_}
 						alt={right.AltTextImage}
 						onError={() => setRightError(true)}
 					/>

@@ -5,37 +5,9 @@ import "./HotspotImage.css";
 const HotspotImage = ({ data, imageUrl }) => {
 	const [markers, setMarkers] = useState([]);
 	const [hoveredMarker, setHoveredMarker] = useState(null);
+	const [imgDimensions, setImgDimensions] = useState({ width: null, height: null });
 
-	// Sample data for testing
-	const sampleData = {
-		"Json Object": {
-			ObjectType: "Hotspot Image",
-			ObjectName: "Sample Diagram",
-			AbstractParameter: {
-				_Picture_: "https://via.placeholder.com/600x400/007bff/ffffff?text=Sample+Image",
-				_AltText_: "A sample diagram for testing hotspot functionality",
-				hotSpots: [
-					{
-						_Xposition_: "25",
-						_Yposition_: "30",
-						_Header_: "Sample Point 1",
-						_HotspotText_: "This is a sample hotspot point for testing purposes.",
-						_HotspotText2_: "Additional information can be displayed here.",
-					},
-					{
-						_Xposition_: "75",
-						_Yposition_: "60",
-						_Header_: "Sample Point 2",
-						_HotspotText_: "Another sample hotspot point with different content.",
-						_HotspotText2_: " ",
-					},
-				],
-			},
-		},
-	};
-
-	// Use provided data or fallback to sample data
-	const displayData = data || sampleData;
+	const displayData = data ;
 
 	// Convert JSON data to markers format
 	useEffect(() => {
@@ -69,6 +41,13 @@ const HotspotImage = ({ data, imageUrl }) => {
 		setHoveredMarker(marker);
 	};
 
+	const handleImageLoad = (e) => {
+		setImgDimensions({
+			width: e.target.naturalWidth,
+			height: e.target.naturalHeight
+		});
+	};
+
 	if (!displayData || !displayData["Json Object"]?.AbstractParameter?._Picture_) {
 		return <div>No hotspot image data available</div>;
 	}
@@ -85,7 +64,15 @@ const HotspotImage = ({ data, imageUrl }) => {
 							src={imageSource}
 							alt={displayData["Json Object"].AbstractParameter._AltText_ || "Hotspot"}
 							className="hotspot-main-image"
-							style={{ maxWidth: "100%", height: "auto", display: "block" }}
+							width={imgDimensions.width || undefined}
+							height={imgDimensions.height || undefined}
+							style={{
+								display: "block",
+								...(imgDimensions.width && imgDimensions.height
+									? { width: imgDimensions.width, height: imgDimensions.height }
+									: {})
+							}}
+							onLoad={handleImageLoad}
 						/>
 						{markers.map((marker) => (
 							<CustomMarker

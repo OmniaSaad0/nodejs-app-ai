@@ -8,6 +8,16 @@ import ImageJuxtaposition from "./assets/Component/ImageJuxtaposition/ImageJuxta
 import Chart from "./assets/Component/Chart/Chart";
 import Accordion from "./assets/Component/Accordion/Accordion";
 
+import MCQ from "./assets/Component/MCQ/MCQ";
+import TrueFalse from "./assets/Component/TrueFalse/TrueFalse";
+import MarkTheWord from "./assets/Component/MarkTheWord/MarkTheWord";
+import ImageMCQ from "./assets/Component/ImageMCQ/ImageMCQ";
+import DragAndDrop from "./assets/Component/DragAndDrop/DragAndDrop";
+import FillInTheBlank from "./assets/Component/FillInTheBlank/FillInTheBlank";
+import Essay from "./assets/Component/Essay/Essay";
+import SortParagraph from "./assets/Component/SortParagraph/SortParagraph";
+
+
 function ResultPage() {
 	const [result, setResult] = useState(null);
 	const [type, setType] = useState("");
@@ -16,15 +26,27 @@ function ResultPage() {
 
 	useEffect(() => {
 		const stored = sessionStorage.getItem("resultData");
-		const imgStr = sessionStorage.getItem("previewImage")
+		const imgStr = sessionStorage.getItem("previewImage");
 		if (stored) {
 			const parsed = JSON.parse(stored);
 			setResult(parsed.result);
 			setType(parsed.type);
 			setName(parsed.name);
+
+			// Hotspot Image fallback: use _Picture_ from JSON if previewImage is missing
+			if (
+				parsed.type === "Hotspot Image" &&
+				!imgStr &&
+				parsed.result &&
+				parsed.result["Json Object"] &&
+				parsed.result["Json Object"].AbstractParameter &&
+				parsed.result["Json Object"].AbstractParameter._Picture_
+			) {
+				setPreviewImage(parsed.result["Json Object"].AbstractParameter._Picture_);
+			}
 		}
-		if(imgStr) {
-			setPreviewImage(atob(imgStr))
+		if (imgStr) {
+			setPreviewImage(atob(imgStr));
 		}
 	}, []);
 
@@ -38,7 +60,7 @@ function ResultPage() {
 			{type === "Image Blinder" && (
 				<ImageBlinder
 					slides={result["Json Object"].AbstractParameter["Slides 2"] || []}
-					title={result["Json Object"].AbstractParameter._Heading_ || name}
+					title={result["Json Object"].AbstractParameter._Title_ || name}
 				/>
 			)}
 			{type === "Image Slider" && (
@@ -66,6 +88,31 @@ function ResultPage() {
 			{type === "Accordion" && (
 				<Accordion data={result} />
 			)}
+
+			{type === "MCQ" && (
+				<MCQ data={result} />
+			)}
+			{type === "True False" && (
+				<TrueFalse data={result} />
+			)}
+			{type === "Mark the Word" && (
+				<MarkTheWord data={result} />
+			)}
+			{type === "Image MCQ" && (
+				<ImageMCQ data={result} />
+			)}
+			{type === "Text Drag Word" && (
+				<DragAndDrop data={result} />
+			)}
+			{type === "Fill in the Blank" && (
+				<FillInTheBlank data={result} />
+			)}
+			{type === "Essay" && (
+				<Essay data={result} />
+			)}
+			{type === "Sort Paragraph" && (
+				<SortParagraph data={result} />
+			)}
 		</div>
 	);
 }
@@ -78,6 +125,10 @@ function App() {
 	const [previewImage, setPreviewImage] = useState(null);
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [error, setError] = useState("");
+	const [selectedJson, setSelectedJson] = useState(null);
+	const [jsonError, setJsonError] = useState("");
+	const [inputMode, setInputMode] = useState("image"); // 'image' or 'json'
+	const [pastedJsonText, setPastedJsonText] = useState("");
 	const navigate = useNavigate();
 
 	const handleImageChange = (event) => {
@@ -91,6 +142,53 @@ function App() {
 			reader.readAsDataURL(imageFile);
 		} else {
 			setPreviewImage(null);
+		}
+	};
+
+	// const handleJsonChange = (event) => {
+	// 	const file = event.target.files && event.target.files[0];
+	// 	if (!file) {
+	// 		setSelectedJson(null);
+	// 		setJsonError("");
+	// 		return;
+	// 	}
+	// 	const reader = new FileReader();
+	// 	reader.onload = (e) => {
+	// 		try {
+	// 			const parsed = JSON.parse(e.target.result);
+	// 			// Basic validation: must have at least 'Json Object' or 'slides' key
+	// 			if (
+	// 				parsed["Json Object"] || parsed["slides"]
+	// 			) {
+	// 				setSelectedJson(parsed);
+	// 				setJsonError("");
+	// 				setInputMode("json");
+	// 			} else {
+	// 				setSelectedJson(null);
+	// 				setJsonError("JSON must contain 'Json Object' or 'slides' key.");
+	// 			}
+	// 		} catch (err) {
+	// 			setSelectedJson(null);
+	// 			setJsonError("Invalid JSON file.");
+	// 		}
+	// 	};
+	// 	reader.readAsText(file);
+	// };
+
+	const handlePastedJson = () => {
+		try {
+			const parsed = JSON.parse(pastedJsonText);
+			// if (parsed["Json Object"]) {
+				setSelectedJson(parsed);
+				setJsonError("");
+				setInputMode("json");
+			// } else {
+			// 	setSelectedJson(null);
+			// 	setJsonError("JSON must contain 'Json Object'.");
+			// }
+		} catch (err) {
+			setSelectedJson(null);
+			setJsonError("Invalid JSON in text field.");
 		}
 	};
 
@@ -147,6 +245,28 @@ function App() {
 		}
 	};
 
+	const processJsonDirect = () => {
+		if (!selectedJson) {
+			setJsonError("No valid JSON selected.");
+			return;
+		}
+		if (!type) {
+			setJsonError("Please select a type.");
+			return;
+		}
+
+		// Store result in sessionStorage and open result page in new tab
+		const resultId = Date.now();
+		sessionStorage.setItem(
+			"resultData",
+			JSON.stringify({ result: selectedJson, type, name })
+		);
+		sessionStorage.removeItem("previewImage");
+		const url = `/result/${encodeURIComponent(type)}/${resultId}`;
+		window.open(url, '_blank');
+		setJsonResponseText(JSON.stringify(selectedJson, null, 2));
+	};
+
 	return (
 		<Routes>
 			<Route
@@ -182,6 +302,14 @@ function App() {
 										<option value="Image Slider">Image Slider</option>
 										<option value="Chart">Chart</option>
 										<option value="Accordion">Accordion</option>
+										<option value="MCQ">MCQ</option>
+										<option value="Image MCQ">Image MCQ</option>
+										<option value="Fill in the Blank">Fill in the Blank</option>
+										<option value="Text Drag Word">Text Drag Word</option>
+										<option value="Sort Paragraph">Sort Paragraph</option>
+										<option value="True False">True False</option>
+										<option value="Mark the Word">Mark the Word</option>
+										<option value="Essay">Essay</option>
 									</select>
 								</div>
 							</div>
@@ -201,15 +329,63 @@ function App() {
 								>
 									📤 UPLOAD IMAGE
 								</button>
+								
 							</div>
-
-							{previewImage && (
+							<div className="json-paste-section">
+								<label htmlFor="jsonPaste">Paste JSON here:</label>
+								<textarea
+									id="jsonPaste"
+									rows={6}
+									value={pastedJsonText}
+									onChange={e => setPastedJsonText(e.target.value)}
+									placeholder="Paste your JSON here..."
+									style={{ width: "100%", fontFamily: "monospace" }}
+								/>
+								<button className="upload-images-button" onClick={handlePastedJson} style={{ marginTop: 8 }}>
+									Use Direct JSON
+								</button>
+							</div>
+							{(selectedImage && selectedJson) && (
+								<div className="input-mode-select">
+									<label>
+										<input
+											type="radio"
+											name="inputMode"
+											value="image"
+											checked={inputMode === "image"}
+											onChange={() => setInputMode("image")}
+										/>
+										Use Image
+									</label>
+									<label>
+										<input
+											type="radio"
+											name="inputMode"
+											value="json"
+											checked={inputMode === "json"}
+											onChange={() => setInputMode("json")}
+										/>
+										Use JSON
+									</label>
+								</div>
+							)}
+							{selectedJson && (
+								<div className="json-preview-block">
+									<label>Uploaded JSON Preview</label>
+									<pre className="json-block"><code>{JSON.stringify(selectedJson, null, 2)}</code></pre>
+								</div>
+							)}
+							{jsonError && (
+								<div className="error-message">
+									<p>{jsonError}</p>
+								</div>
+							)}
+							{previewImage && inputMode === "image" && (
 								<div className="image-preview">
 									<h3>Preview Image</h3>
 									<img src={previewImage} alt="Preview" />
 								</div>
 							)}
-
 							{error && (
 								<div className="error-message">
 									<p>{error}</p>
@@ -217,12 +393,18 @@ function App() {
 							)}
 
 							<div className="submit-section">
-								<button className="submit-button" onClick={processImage} disabled={isProcessing || !selectedImage}>
-									{isProcessing ? "Creating..." : "Create Object"}
-								</button>
+								{inputMode === "image" ? (
+									<button className="submit-button" onClick={processImage} disabled={isProcessing || !selectedImage}>
+										{isProcessing ? "Creating..." : "Create Object from Image"}
+									</button>
+								) : (
+									<button className="submit-button" onClick={processJsonDirect} disabled={!selectedJson}>
+										Create Object from JSON
+									</button>
+								)}
 							</div>
 
-							{jsonResponseText && (
+							{jsonResponseText && inputMode === "image" && (
 								<div className="json-preview-block">
 									<label>Final JSON</label>
 									<pre className="json-block"><code>{jsonResponseText}</code></pre>

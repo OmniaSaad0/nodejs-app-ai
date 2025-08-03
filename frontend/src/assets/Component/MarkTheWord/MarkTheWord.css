@@ -1,0 +1,519 @@
+.marktheword-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Start Screen */
+.marktheword-start-screen {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.marktheword-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.marktheword-info {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 2rem 0;
+  text-align: left;
+}
+
+.marktheword-info p {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+  color: #555;
+}
+
+.marktheword-info ul {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.marktheword-info li {
+  margin: 0.5rem 0;
+  color: #666;
+}
+
+.marktheword-start-btn {
+  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+  color: white;
+  border: none;
+  padding: 1rem 3rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+}
+
+.marktheword-start-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(155, 89, 182, 0.6);
+}
+
+/* Header */
+.marktheword-header {
+  margin-bottom: 2rem;
+}
+
+.marktheword-progress {
+  margin: 1.5rem 0;
+}
+
+.marktheword-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.marktheword-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #9b59b6, #8e44ad);
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.marktheword-progress-text {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.marktheword-timer {
+  background: #fff3cd;
+  color: #856404;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  display: inline-block;
+  margin-top: 1rem;
+}
+
+/* Task Description */
+.marktheword-task-description {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  border-left: 4px solid #9b59b6;
+}
+
+.marktheword-task-description h3 {
+  color: #2c3e50;
+  margin: 0 0 1rem 0;
+  font-size: 1.3rem;
+}
+
+.marktheword-task-description p {
+  color: #555;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Sentence Container */
+.marktheword-sentence-container {
+  margin: 2rem 0;
+  padding: 2rem;
+  background: #f8f9fa;
+  border-radius: 16px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.marktheword-sentence-container:hover {
+  border-color: #9b59b6;
+  box-shadow: 0 4px 15px rgba(155, 89, 182, 0.1);
+}
+
+.marktheword-sentence {
+  font-size: 1.4rem;
+  color: #2c3e50;
+  line-height: 1.8;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+.marktheword-word-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.marktheword-word-option {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #555;
+  min-width: 120px;
+  text-align: center;
+}
+
+.marktheword-word-option:hover {
+  border-color: #9b59b6;
+  background: #f8f9ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(155, 89, 182, 0.15);
+}
+
+.marktheword-word-option.marktheword-selected {
+  border-color: #9b59b6;
+  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3);
+  transform: translateY(-2px);
+}
+
+.marktheword-word-option.marktheword-correct {
+  border-color: #27ae60;
+  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+}
+
+.marktheword-word-option.marktheword-incorrect {
+  border-color: #e74c3c;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+
+/* Navigation */
+.marktheword-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.marktheword-nav-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.marktheword-nav-btn:hover:not(:disabled) {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+.marktheword-nav-btn:disabled {
+  background: #adb5bd;
+  cursor: not-allowed;
+}
+
+.marktheword-submit-btn {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.marktheword-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+}
+
+.marktheword-submit-btn:disabled {
+  background: #adb5bd;
+  cursor: not-allowed;
+}
+
+/* Question Dots */
+.marktheword-question-dots {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.marktheword-dot {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #e9ecef;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.marktheword-dot:hover {
+  border-color: #9b59b6;
+  background: #f8f9ff;
+}
+
+.marktheword-dot.marktheword-dot-active {
+  border-color: #9b59b6;
+  background: #9b59b6;
+  color: white;
+}
+
+.marktheword-dot.marktheword-dot-answered {
+  border-color: #27ae60;
+  background: #27ae60;
+  color: white;
+}
+
+/* Results */
+.marktheword-results {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.marktheword-score-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin: 2rem 0;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px;
+}
+
+.marktheword-score-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 20px rgba(155, 89, 182, 0.3);
+}
+
+.marktheword-score-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.marktheword-score-total {
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
+.marktheword-score-details h3 {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+}
+
+.marktheword-score-details p {
+  font-size: 1.1rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Review */
+.marktheword-answers-review {
+  text-align: left;
+  margin: 2rem 0;
+}
+
+.marktheword-answers-review h3 {
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.marktheword-review-item {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.marktheword-review-sentence {
+  font-size: 1.1rem;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.marktheword-review-answer {
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #e9ecef;
+  position: relative;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.marktheword-review-answer.marktheword-correct {
+  background: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.marktheword-review-answer.marktheword-incorrect {
+  background: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+.marktheword-correct-mark {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #27ae60;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.marktheword-incorrect-mark {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #e74c3c;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.marktheword-retry-btn {
+  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+  color: white;
+  border: none;
+  padding: 1rem 3rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 2rem;
+}
+
+.marktheword-retry-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(155, 89, 182, 0.6);
+}
+
+/* Error */
+.marktheword-error {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666;
+}
+
+.marktheword-error h3 {
+  color: #e74c3c;
+  margin-bottom: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .marktheword-container {
+    padding: 1rem;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .marktheword-title {
+    font-size: 2rem;
+  }
+
+  .marktheword-sentence {
+    font-size: 1.2rem;
+  }
+
+  .marktheword-word-options {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .marktheword-word-option {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .marktheword-navigation {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .marktheword-question-dots {
+    order: -1;
+  }
+
+  .marktheword-score-card {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .marktheword-score-circle {
+    width: 100px;
+    height: 100px;
+  }
+
+  .marktheword-score-number {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .marktheword-container {
+    padding: 0.5rem;
+  }
+
+  .marktheword-title {
+    font-size: 1.5rem;
+  }
+
+  .marktheword-word-option {
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+  }
+
+  .marktheword-dot {
+    width: 35px;
+    height: 35px;
+    font-size: 0.8rem;
+  }
+} 

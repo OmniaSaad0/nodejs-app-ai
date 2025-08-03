@@ -119,24 +119,22 @@ async function processImageSlider(jsonResponse, originalImagePath) {
 
 	for (let i = 0; i < slides.length; i++) {
 		const slide = slides[i];
-		const photo = slide.Photo;
+		// const photo = slide.Photo;
 
-		if (photo?.["_NormalizedCoordinates_"]) {
+		if (slide?.["_NormalizedCoordinates_"]) {
 			const uniqueId = uuidv4();
 			const outputFileName = `slide_${uniqueId}.jpg`;
 			const outputPath = path.join(processedImagesDir, outputFileName);
 
-			const cropResult = await cropImage(originalImagePath, photo._NormalizedCoordinates_, outputPath);
+			const cropResult = await cropImage(originalImagePath, slide._NormalizedCoordinates_, outputPath);
 
 			if (cropResult.success) {
+
 				processedSlides.push({
 					...slide,
-					Photo: {
-						...photo,
-						_Picture_: `http://localhost:3001/processed-images/${outputFileName}`,
-						_ProcessedPath_: outputPath,
-					},
+					"_Picture_": `http://localhost:3001/processed-images/${outputFileName}`,
 				});
+				console.log("slide : ", slide);
 			} else {
 				console.error(`Failed to crop slide ${i}:`, cropResult.error);
 				processedSlides.push(slide);
@@ -158,52 +156,52 @@ async function processImageSlider(jsonResponse, originalImagePath) {
 	};
 }
 
-// processing for image blinder type
-async function processImageBlinder(jsonResponse, originalImagePath) {
-	const processedSlides = [];
-	const slides = jsonResponse["Json Object"]?.AbstractParameter?.["Slides 2"] || [];
+// // processing for image blinder type
+// async function processImageBlinder(jsonResponse, originalImagePath) {
+// 	const processedSlides = [];
+// 	const slides = jsonResponse["Json Object"]?.AbstractParameter?.["Slides"] || [];
 
-	for (let i = 0; i < slides.length; i++) {
-		const slide = { ...slides[i] };
-		const photo = slide.Photo || {};
-		const coords = photo._NormalizedCoordinates_;
-		if (coords && (typeof coords === 'string' || (typeof coords === 'object' && coords !== null))) {
-			const uniqueId = uuidv4();
-			const outputFileName = `blinder_${uniqueId}.jpg`;
-			const outputPath = path.join(processedImagesDir, outputFileName);
-			try {
-				const cropResult = await cropImage(originalImagePath, coords, outputPath);
-				if (cropResult.success) {
-					processedSlides.push({
-						...slide,
-						_Picture_: `http://localhost:3001/processed-images/${outputFileName}`,
-						_ProcessedPath_: outputPath,
-					});
-				} else {
-					console.error(`Failed to crop blinder slide ${i}:`, cropResult.error);
-					processedSlides.push(slide);
-				}
-			} catch (err) {
-				console.error(`Error cropping blinder slide ${i}:`, err, '\nSlide:', slide);
-				processedSlides.push(slide);
-			}
-		} else {
-			console.error(`Missing or invalid _NormalizedCoordinates_ for blinder slide ${i}:`, slide);
-			processedSlides.push(slide);
-		}
-	}
+// 	for (let i = 0; i < slides.length; i++) {
+// 		const slide = { ...slides[i] };
+// 		const photo = slide.Photo || {};
+// 		const coords = photo._NormalizedCoordinates_;
+// 		if (coords && (typeof coords === 'string' || (typeof coords === 'object' && coords !== null))) {
+// 			const uniqueId = uuidv4();
+// 			const outputFileName = `blinder_${uniqueId}.jpg`;
+// 			const outputPath = path.join(processedImagesDir, outputFileName);
+// 			try {
+// 				const cropResult = await cropImage(originalImagePath, coords, outputPath);
+// 				if (cropResult.success) {
+// 					processedSlides.push({
+// 						...slide,
+// 						_Picture_: `http://localhost:3001/processed-images/${outputFileName}`,
+// 						_ProcessedPath_: outputPath,
+// 					});
+// 				} else {
+// 					console.error(`Failed to crop blinder slide ${i}:`, cropResult.error);
+// 					processedSlides.push(slide);
+// 				}
+// 			} catch (err) {
+// 				console.error(`Error cropping blinder slide ${i}:`, err, '\nSlide:', slide);
+// 				processedSlides.push(slide);
+// 			}
+// 		} else {
+// 			console.error(`Missing or invalid _NormalizedCoordinates_ for blinder slide ${i}:`, slide);
+// 			processedSlides.push(slide);
+// 		}
+// 	}
 
-	return {
-		...jsonResponse,
-		"Json Object": {
-			...jsonResponse["Json Object"],
-			AbstractParameter: {
-				...jsonResponse["Json Object"].AbstractParameter,
-				"Slides 2": processedSlides,
-			},
-		},
-	};
-}
+// 	return {
+// 		...jsonResponse,
+// 		"Json Object": {
+// 			...jsonResponse["Json Object"],
+// 			AbstractParameter: {
+// 				...jsonResponse["Json Object"].AbstractParameter,
+// 				"Slides 2": processedSlides,
+// 			},
+// 		},
+// 	};
+// }
 
 // processing for image juxtaposition type
 async function processImageJuxtaposition(jsonResponse, originalImagePath) {
@@ -213,7 +211,7 @@ async function processImageJuxtaposition(jsonResponse, originalImagePath) {
 	for (let i = 0; i < slides.length; i++) {
 		const slide = { ...slides[i] };
 		const coords = slide._NormalizedCoordinates_;
-		if (coords && (typeof coords === 'string' || (typeof coords === 'object' && coords !== null))) {
+		if (coords) {
 			const uniqueId = uuidv4();
 			const outputFileName = `juxtaposition_${uniqueId}.jpg`;
 			const outputPath = path.join(processedImagesDir, outputFileName);
@@ -223,7 +221,7 @@ async function processImageJuxtaposition(jsonResponse, originalImagePath) {
 					processedSlides.push({
 						...slide,
 						Picture: `http://localhost:3001/processed-images/${outputFileName}`,
-						_ProcessedPath_: outputPath,
+						// _ProcessedPath_: outputPath,
 					});
 				} else {
 					console.error(`Failed to crop juxtaposition slide ${i}:`, cropResult.error);
@@ -258,6 +256,30 @@ async function processHotspotImage(jsonResponse, originalImagePath) {
 	let updatedJson = { ...jsonResponse };
 	if (updatedJson["Json Object"] && updatedJson["Json Object"].AbstractParameter) {
 		updatedJson["Json Object"].AbstractParameter._Picture_ = `http://localhost:3001/processed-images/${outputFileName}`;
+	}
+	return updatedJson;
+}
+
+// processing for Image MCQ type
+async function processImageMCQ(jsonResponse, originalImagePath) {
+	let updatedJson = { ...jsonResponse };
+	const options = updatedJson["Json Object"]?.AbstractParameter?.Options2 || [];
+
+	for (let oIdx = 0; oIdx < options.length; oIdx++) {
+		const option = options[oIdx];
+		const coords = option.Picture?._NormalizedCoordinates_;
+		if (coords) {
+			const uniqueId = uuidv4();
+			const outputFileName = `imagemcq_${uniqueId}.jpg`;
+			const outputPath = path.join(processedImagesDir, outputFileName);
+			const cropResult = await cropImage(originalImagePath, coords, outputPath);
+			if (cropResult.success) {
+				option.Picture._Picture_ = `http://localhost:3001/processed-images/${outputFileName}`;
+				option.Picture._ProcessedPath_ = outputPath;
+			} else {
+				console.error(`Failed to crop Image MCQ option ${oIdx}:`, cropResult.error);
+			}
+		}
 	}
 	return updatedJson;
 }
@@ -354,7 +376,7 @@ app.post("/process-images", upload.single("file"), async (req, res) => {
 			// Optionally fix field names if necessary
 			const correctedText = cleanedText.replace(/"Slides"\s*:/, '"Slides 2":');
 
-			jsonResponse = JSON.parse(correctedText);
+			jsonResponse = JSON.parse(cleanedText);
 		} catch (parseError) {
 			console.error("Failed to parse Gemini response as JSON.", parseError);
 			return res.status(500).json({
@@ -368,14 +390,17 @@ app.post("/process-images", upload.single("file"), async (req, res) => {
 		if (type === "Image Slider") {
 			finalResponse = await processImageSlider(jsonResponse, filePath);
 		} else if (type === "Image Blinder") {
-			finalResponse = await processImageBlinder(jsonResponse, filePath);
+			finalResponse = await processImageSlider(jsonResponse, filePath);
 		} else if (type === "Image Juxtaposition") {
-			finalResponse = await processImageJuxtaposition(jsonResponse, filePath);
+			finalResponse = await processImageSlider(jsonResponse, filePath);
 		} else if (type === "Hotspot Image") {
 			finalResponse = await processHotspotImage(jsonResponse, filePath);
 		} else if (type === "Chart" || type === "Accordion") {
 			// For Chart and Accordion, just return the parsed JSON as-is (no cropping needed)
 			finalResponse = jsonResponse;
+		}
+		else if (type === "Image MCQ") {
+			finalResponse = await processImageMCQ(jsonResponse, filePath);
 		}
  
 		res.status(200).json({ result: finalResponse });
@@ -393,87 +418,6 @@ app.post("/process-images", upload.single("file"), async (req, res) => {
 });
 
 
-// --- test Gemini with images ---
-app.post("/analyze-image", upload.single("image"), validateInput, async (req, res) => {
-	const { promptType } = req.body;
-	const imageFilePath = req.file.path;
-	const mimeType = req.file.mimetype;
-
-	try {
-		// Use Gemini multimodal model
-		const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-		const prompt = promptTemplates[promptType];
-		const imagePart = fileToGenerativePart(imageFilePath, mimeType);
-
-		const generationConfig = {
-			temperature: 0.2,
-			topK: 1,
-			topP: 1,
-			maxOutputTokens: 2048,
-		};
-
-		const safetySettings = [
-			{ category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-			{ category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-			{ category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-			{ category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-		];
-
-		const result = await model.generateContent({
-			contents: [{ role: "user", parts: [imagePart, { text: prompt }] }],
-			generationConfig,
-			safetySettings,
-		});
-
-		const response = result.response;
-		if (!response.candidates || !response.candidates[0].content.parts[0].text) {
-			console.error("Unexpected Gemini response structure:", JSON.stringify(response, null, 2));
-			return res.status(500).json({ error: "Could not extract text from AI response." });
-		}
-
-		const rawText = response.candidates[0].content.parts[0].text;
-
-		// Clean and parse the JSON response from Gemini
-		let jsonResponse;
-		try {
-			// Try to extract the actual JSON block between ```json and ```
-			const jsonMatch = rawText.match(/```json\s*([\s\S]*?)```/i);
-
-			if (!jsonMatch) {
-				throw new Error("No valid ```json block found in the response.");
-			}
-
-			const cleanedText = jsonMatch[1].trim();
-
-			// Optionally fix field names if necessary
-			const correctedText = cleanedText.replace(/"Slides"\s*:/, '"Slides 2":');
-
-			jsonResponse = JSON.parse(correctedText);
-		} catch (parseError) {
-			console.error("Failed to parse Gemini response as JSON.", parseError);
-			return res.status(500).json({
-				error: "The AI response was not valid JSON.",
-				rawResponse: rawText,
-			});
-		}
-
-		res.status(200).json({ result: jsonResponse });
-	} catch (error) {
-		console.error("Gemini API Error:", error);
-		res.status(500).json({ error: "An error occurred while processing the image with the Gemini API." });
-	} finally {
-		
-		setTimeout(() => {
-			fs.unlink(imageFilePath, (err) => {
-				if (err) {
-					console.error(`Failed to delete temporary file: ${imageFilePath}`, err);
-				} else {
-					console.log(`Deleted temporary file: ${imageFilePath}`);
-				}
-			});
-		}, 500);
-	}
-});
 
 // --- Health and Test Routes ---
 app.get("/health", (req, res) => {
