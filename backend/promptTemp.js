@@ -331,31 +331,40 @@ Note4: tips or helps cannot be the same as the answer,
 Note5: suggest a correct answer,
 Note6: Do not number the elements of the array as they will be randomly ordered,
 Note7:  "_ChosenFeedback_" means a feedback comment if this answer is chosen, while "_notChosenFeedback_" means a feedback comment if this answer is not chosen.  Your suggested comments should take into consideration the correctness of the option (“_Correct_”)
+Note8: Options 2 is an array of objects, each object is an option, each option has a _Picture_, _NormalizedCoordinates_, _AltText_, _HoverText_, _Correct_
+extract the image option coordinates and save it in the _NormalizedCoordinates_ field
+{
+  "Json Object": {
+    "ObjectType": "Image MCQ",
+    "ObjectName": "text",
+    "AbstractParameter": {
+      "_Question_": "text",
+      "Options 2": [
+        {
+          "_Picture_": "image_URL",
+          "_NormalizedCoordinates_": "(x = X, y = Y, h = H, w = W)",
+          "_AltText_": "text",
+          "_HoverText_": "text",
+          "_Correct_": true
+        }
+      ]
+    }
+  }
+}
 
-{"Json Object": {
- "ObjectType": <"Image MCQ">,
- "ObjectName": "text",
-  "AbstractParameter": 
-{"_Question_":"text","Options2":[ {"Picture" :{"_Picture_":"image", "_NormalizedCoordinates_":"(x = X, y = Y, h = H, w = W)"}, "_AltText_":"text","_HoverText_":"text","_Correct_":"Bool"}]}
-}}
 Image specific notes:  
 1)	 “_AltText_” is a description of the image,
 2)	“_HoverText_” is a tip.
 Object specific notes:
 1)	You need to split the image into images each is an option, crop the image and save it, then provide its URL in the Json field “_Picture_”
 2)	The “_NormalizedCoordinates_” are calculated as follows:
-x: horizontal offset (from left) / total image width
 
-y: vertical offset (from top) / total image height
+x = zero-indexed offset from left edge / imageWidth
+y = zero-indexed offset from top edge / imageHeight
+w = width / imageWidth
+h = height / imageHeight
 
-w: width / total image width
 
-h: height / total image height
-
-Where:
-x,y = block/cropped image vertex (up-left corner)
-w= block/cropped image width
-h= block/cropped image height
 use the language of the uploaded image for all text content.
 
 Please output the raw JSON only — do not add extra explanations or formatting outside the JSON

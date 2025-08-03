@@ -16,14 +16,14 @@ const ImageMCQ = ({ data }) => {
 
   let questions = [];
   let title = "Image MCQ";
-  if (mcqData?.AbstractParameter?.Options2) {
+  if (mcqData?.AbstractParameter["Options 2"]) {
     questions = [
       {
         _Question_: mcqData.AbstractParameter._Question_ || "",
-        Options: mcqData.AbstractParameter.Options2.map(opt => ({
+        Options: mcqData.AbstractParameter["Options 2"].map(opt => ({
           ...opt,
-          _Picture_: opt.Picture?._Picture_ || "",
-          _NormalizedCoordinates_: opt.Picture?._NormalizedCoordinates_ || "",
+          _Picture_:opt._Picture_ || "",
+          _NormalizedCoordinates_: opt._NormalizedCoordinates_ || "",
         }))
       }
     ];

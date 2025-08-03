@@ -263,19 +263,19 @@ async function processHotspotImage(jsonResponse, originalImagePath) {
 // processing for Image MCQ type
 async function processImageMCQ(jsonResponse, originalImagePath) {
 	let updatedJson = { ...jsonResponse };
-	const options = updatedJson["Json Object"]?.AbstractParameter?.Options2 || [];
+	const options = updatedJson["Json Object"]?.AbstractParameter["Options 2"] || [];
 
 	for (let oIdx = 0; oIdx < options.length; oIdx++) {
 		const option = options[oIdx];
-		const coords = option.Picture?._NormalizedCoordinates_;
+		const coords = option._NormalizedCoordinates_;
 		if (coords) {
 			const uniqueId = uuidv4();
 			const outputFileName = `imagemcq_${uniqueId}.jpg`;
 			const outputPath = path.join(processedImagesDir, outputFileName);
 			const cropResult = await cropImage(originalImagePath, coords, outputPath);
 			if (cropResult.success) {
-				option.Picture._Picture_ = `http://localhost:3001/processed-images/${outputFileName}`;
-				option.Picture._ProcessedPath_ = outputPath;
+				option._Picture_ = `http://localhost:3001/processed-images/${outputFileName}`;
+				// option.Picture._ProcessedPath_ = outputPath;
 			} else {
 				console.error(`Failed to crop Image MCQ option ${oIdx}:`, cropResult.error);
 			}
