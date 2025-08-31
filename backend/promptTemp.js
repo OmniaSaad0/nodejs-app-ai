@@ -298,9 +298,9 @@ write all data in same language of the question
 Very important Notes:
 Note1: Please give each object an appropriate expressive name in the field “ObjectName”,
 Note2: All the Json fields must be in the same language of the book, 
+Very specific notes: The field “_Question_” contains the statement to be evaluated. The field “_Correct_” contains the answer to the question, it's a boolean value indicating if the statement is true (true) or false (false) or a string value indicating if the statement is true (true) or false (false).
 Note3: fill ALL the given fields of the Json (do not use null/empty), but do not give the answer, only a clue, Note4: tips or helps cannot be the same as the answer, {“Json Object”: “ObjectType”: <”typeName”: “True or False”> “ObjectName”: “statement”, “AbstractParameter”: 
-{"_Question_":"text", "_Correct_":Bool} }
-Very specific notes: The field “_Question_” contains the statement to be evaluated. The field “_Correct_” contains the boolean value indicating if the statement is true (true) or false (false).
+{"_Question_":"text", "_Correct_":"boolean-value", _feedback_:"explenation} }
 return respons with the image language
 
 `,

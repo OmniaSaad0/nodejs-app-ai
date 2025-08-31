@@ -1,0 +1,94 @@
+.info-button-container {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.info-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #007bff;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.info-btn:hover {
+  background: #0056b3;
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
+}
+
+.info-icon {
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+/* Position variants */
+.info-btn-right {
+  position: static; /* Changed from absolute to static for inline positioning */
+  margin-left: 0.5rem;
+}
+
+.info-btn-left {
+  position: static;
+  margin-right: 0.5rem;
+}
+
+.info-btn-top {
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+}
+
+.info-btn-bottom {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 1rem;
+}
+
+.tip-display {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 0.8rem;
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: fadeInDown 0.3s ease;
+  min-width: 200px;
+  max-width: 300px;
+  z-index: 10;
+}
+
+.tip-content {
+  color: #856404;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.tip-content strong {
+  color: #6c5700;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} 
